@@ -26,4 +26,16 @@ window.addEventListener('message',function(e){
 </script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>window.OneSignalDeferred=window.OneSignalDeferred||[];OneSignalDeferred.push(async function(OneSignal){await OneSignal.init({appId:"85e0e6df-ef26-4895-9108-a253f0b1d7a3"});window.addEventListener("message",function(e){try{var h=new URL(e.origin).hostname;if(!/(\.googleusercontent\.com|\.google\.com)$/.test(h))return;var d=e.data;if(d&&typeof d==="object"&&typeof d.kh_email==="string"&&/^[^@\s]+@[^@\s]+$/.test(d.kh_email))OneSignal.login(d.kh_email.toLowerCase());}catch(x){}});});</script>
+<script>
+OneSignalDeferred.push(function(OneSignal){
+var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=window.navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+var b=document.createElement('button');b.id='khbell';b.textContent='🔔 Bật thông báo';
+b.style.cssText='position:fixed;left:12px;bottom:12px;z-index:99999;padding:9px 14px;border:0;border-radius:20px;background:#b5482b;color:#fff;font:600 14px system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none';
+document.body.appendChild(b);
+function upd(){try{var ok=('Notification' in window)&&Notification.permission==='granted'&&OneSignal.User.PushSubscription.optedIn;b.style.display=ok?'none':'block';}catch(e){b.style.display='block';}}
+b.onclick=function(){if(ios&&!sa){alert('Trên iPhone: bấm nút Chia sẻ của Safari, chọn Thêm vào Màn hình chính, rồi mở Cổng từ biểu tượng mới để bật thông báo.');return;}if(!('Notification' in window)){alert('Thiết bị này chưa hỗ trợ thông báo.');return;}if(Notification.permission==='denied'){alert('Thông báo đang bị chặn. Vào Cài đặt của trình duyệt hoặc ứng dụng, bật lại Thông báo cho Cổng Kiến Huỳnh.');return;}OneSignal.Notifications.requestPermission().then(function(){return OneSignal.User.PushSubscription.optIn();}).then(upd,upd);};
+try{OneSignal.User.PushSubscription.addEventListener('change',upd);}catch(e){}
+setTimeout(upd,2000);setTimeout(upd,6000);
+});
+</script>
 </body></html>
