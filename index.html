@@ -24,4 +24,6 @@ window.addEventListener('message',function(e){
  if(d.kh_t&&/^[0-9a-zA-Z_-]{20,60}$/.test(d.kh_t))localStorage.setItem('kh_t',d.kh_t);else if(!d.kh_t)localStorage.removeItem('kh_t');}catch(x){}
 });
 </script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>window.OneSignalDeferred=window.OneSignalDeferred||[];OneSignalDeferred.push(async function(OneSignal){await OneSignal.init({appId:"85e0e6df-ef26-4895-9108-a253f0b1d7a3"});window.addEventListener("message",function(e){try{var h=new URL(e.origin).hostname;if(!/(\.googleusercontent\.com|\.google\.com)$/.test(h))return;var d=e.data;if(d&&typeof d==="object"&&typeof d.kh_email==="string"&&/^[^@\s]+@[^@\s]+$/.test(d.kh_email))OneSignal.login(d.kh_email.toLowerCase());}catch(x){}});});</script>
 </body></html>
