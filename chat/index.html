@@ -85,8 +85,8 @@ button.ghost{background:transparent;color:var(--mu);font-weight:500;padding:6px 
 var CFG={
   url:'https://wxlqdibzqmdiyopmvyzg.supabase.co',
   key:'sb_publishable_l-PTvErUimNqO-lDwC1gaw_kVVx27l6',        /* khoá anon (công khai) - KHÔNG dùng service_role */
-  title:'Chat nhanh',
-  color:'#b5482b',
+  title:'Chat nội bộ',
+  color:'#0F766E',
   bot:'Trợ lý'
 };
 
@@ -154,7 +154,6 @@ function subscribe(){
   /* nghe mọi tin mới; cơ sở dữ liệu tự lọc theo quyền của người dùng */
   SUB=sb.channel('chat-all').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},function(p){
     var m=p.new;
-    if(m.email!==ME.email.toLowerCase()){try{parent.postMessage({kh_chat:'new',ten:m.ten,kenh:m.kenh},location.origin)}catch(x){}}
     if(m.kenh===CUR){add(m);scrollEnd();}
     else{UNREAD[m.kenh]=(UNREAD[m.kenh]||0)+1;renderSelect();}
   }).subscribe();
