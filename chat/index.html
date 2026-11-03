@@ -32,6 +32,12 @@ button.ghost{background:transparent;color:var(--mu);font-weight:500;padding:6px 
 #bar{display:flex;gap:8px;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--ln)}
 #txt{resize:none;max-height:120px;border-radius:18px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#292524;color:#fff;padding:8px 14px;border-radius:10px;font-size:13px;max-width:90%}
+#adm{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:12px;z-index:5}
+#adm .box{background:var(--card);border-radius:14px;padding:14px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+#aMsg{font-size:13px;color:var(--mu);min-height:20px;margin:6px 0}
+.mr{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--ln);font-size:13px}
+.mr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mr button{padding:4px 10px;font-size:12px}
 </style>
 </head>
 <body>
@@ -48,6 +54,7 @@ button.ghost{background:transparent;color:var(--mu);font-weight:500;padding:6px 
   <div id="top">
     <select id="kenh" aria-label="Chọn kênh"></select>
     <select id="dm" class="dm" aria-label="Nhắn riêng"></select>
+    <button class="ghost" id="bAdm" hidden>Nhân sự</button>
     <button class="ghost" id="bOut">Thoát</button>
   </div>
   <div id="title"></div>
@@ -55,6 +62,19 @@ button.ghost{background:transparent;color:var(--mu);font-weight:500;padding:6px 
   <div id="bar">
     <textarea id="txt" rows="1" placeholder="Nhập tin nhắn..."></textarea>
     <button id="bSendMsg">Gửi</button>
+  </div>
+</div>
+<div id="adm" hidden>
+  <div class="box">
+    <div class="row" style="justify-content:space-between;align-items:center"><b>Thêm / quản lý nhân sự</b><button class="ghost" id="aClose">Đóng</button></div>
+    <input id="aEm" type="email" placeholder="Email người mới" style="margin-bottom:6px">
+    <input id="aNm" placeholder="Tên hiển thị (vd. Nhân - TP. Kiến Trúc)" style="margin-bottom:6px">
+    <div class="row"><input id="aPh" list="aPhL" placeholder="Phòng"><datalist id="aPhL"></datalist>
+    <select id="aVt"><option value="NhanVien">Nhân viên</option><option value="Leader">Leader</option><option value="HanhChinh">Hành chính</option><option value="GiamDoc">Giám đốc / PGĐ</option></select></div>
+    <input id="aCd" placeholder="Chức danh (không bắt buộc, PGĐ ghi: PGĐ)" style="margin-bottom:8px">
+    <button id="aAdd" style="width:100%">Thêm người này</button>
+    <div id="aMsg"></div>
+    <div id="aList"></div>
   </div>
 </div>
 <div id="toast" hidden></div>
@@ -105,7 +125,7 @@ async function enter(){
     await sb.auth.signOut();show('login');
     $('msg1').textContent='Email này chưa được đăng ký với công ty. Vui lòng đăng nhập bằng email đã đăng ký.';return;
   }
-  show('app');buildChannels();subscribe();open(CHAN[0].k,CHAN[0].t);
+  show('app');$('bAdm').hidden=!isAdm();buildChannels();subscribe();open(CHAN[0].k,CHAN[0].t);
 }
 function lead(){return ['GiamDoc','Leader','HanhChinh'].indexOf(ME.vai_tro)>=0;}
 function buildChannels(){
@@ -167,6 +187,32 @@ $('dm').onchange=function(){
 $('bSendMsg').onclick=sendMsg;
 $('txt').onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}};
 $('bOut').onclick=async function(){if(SUB)sb.removeChannel(SUB);await sb.auth.signOut();ME=null;CUR=null;show('login');};
+function isAdm(){return ME&&ME.vai_tro==='GiamDoc'&&!/^PG/i.test(ME.chuc_danh||'');}
+async function admLoad(){
+  var r=await sb.from('members').select('*').order('name');var L=$('aList');L.innerHTML='';
+  if(r.error){$('aMsg').textContent='Không tải được: '+r.error.message;return;}
+  var ph=[];(r.data||[]).forEach(function(m){if(m.phong&&ph.indexOf(m.phong)<0)ph.push(m.phong);});
+  var dl=$('aPhL');dl.innerHTML='';ph.forEach(function(p){var o=document.createElement('option');o.value=p;dl.appendChild(o);});
+  (r.data||[]).forEach(function(m){
+    var d=document.createElement('div');d.className='mr';
+    var t=document.createElement('span');t.textContent=m.name+' · '+m.email+(m.active?'':' (đã khoá)');
+    var b=document.createElement('button');b.className='ghost';b.textContent=m.active?'Khoá':'Mở lại';
+    if(m.email.toLowerCase()===ME.email.toLowerCase())b.hidden=true;
+    b.onclick=async function(){var u=await sb.from('members').update({active:!m.active}).eq('company_id',m.company_id).eq('email',m.email);
+      if(u.error){$('aMsg').textContent='Lỗi: '+u.error.message;}else{admLoad();}};
+    d.appendChild(t);d.appendChild(b);L.appendChild(d);});
+}
+async function admAdd(){
+  var em=$('aEm').value.trim().toLowerCase(),nm=$('aNm').value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)||!nm){$('aMsg').textContent='Cần nhập email đúng và tên.';return;}
+  var r=await sb.from('members').insert({company_id:ME.company_id,email:em,name:nm,phong:$('aPh').value.trim(),vai_tro:$('aVt').value,chuc_danh:$('aCd').value.trim()});
+  if(r.error){$('aMsg').textContent=/duplicate|already/i.test(r.error.message)?'Email này đã có trong danh sách.':'Lỗi: '+r.error.message;return;}
+  $('aMsg').textContent='Đã thêm. '+nm+' vào được ngay bằng email '+em+'.';
+  ['aEm','aNm','aCd'].forEach(function(i){$(i).value='';});admLoad();
+}
+$('bAdm').onclick=function(){$('adm').hidden=false;$('aMsg').textContent='';admLoad();};
+$('aClose').onclick=function(){$('adm').hidden=true;};
+$('aAdd').onclick=admAdd;
 init();
 </script>
 </body>
