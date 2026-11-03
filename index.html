@@ -25,7 +25,7 @@ window.addEventListener('message',function(e){
 });
 </script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>window.OneSignalDeferred=window.OneSignalDeferred||[];OneSignalDeferred.push(async function(OneSignal){await OneSignal.init({appId:"85e0e6df-ef26-4895-9108-a253f0b1d7a3"});window.addEventListener("message",function(e){try{var h=new URL(e.origin).hostname;if(!/(\.googleusercontent\.com|\.google\.com)$/.test(h))return;var d=e.data;if(d&&typeof d==="object"&&typeof d.kh_email==="string"&&/^[^@\s]+@[^@\s]+$/.test(d.kh_email))OneSignal.login(d.kh_email.toLowerCase());}catch(x){}});});</script>
+<script>window.OneSignalDeferred=window.OneSignalDeferred||[];OneSignalDeferred.push(async function(OneSignal){await OneSignal.init({appId:"85e0e6df-ef26-4895-9108-a253f0b1d7a3"});OneSignal.Notifications.addEventListener("foregroundWillDisplay",function(ev){try{ev.preventDefault();ev.notification.display();}catch(x){}});window.addEventListener("message",function(e){try{var h=new URL(e.origin).hostname;if(!/(\.googleusercontent\.com|\.google\.com)$/.test(h))return;var d=e.data;if(d&&typeof d==="object"&&typeof d.kh_email==="string"&&/^[^@\s]+@[^@\s]+$/.test(d.kh_email))OneSignal.login(d.kh_email.toLowerCase());}catch(x){}});});</script>
 <script>
 OneSignalDeferred.push(function(OneSignal){
 var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=window.navigator.standalone||matchMedia('(display-mode: standalone)').matches;
