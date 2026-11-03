@@ -9,14 +9,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kiến Huỳnh">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<style>html,body{margin:0;height:100%;background:#fff}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}#ld{position:fixed;inset:0;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;font:15px system-ui,sans-serif;color:#b5482b}</style>
+<style>html,body{margin:0;height:100%;background:#fff}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}#ld{position:fixed;inset:0;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;font:15px system-ui,sans-serif;color:#b5482b}#ld{z-index:1}#kcb{position:fixed;right:12px;bottom:12px;z-index:99998;padding:11px 16px;border:0;border-radius:24px;background:#b5482b;color:#fff;font:600 15px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer}#kcb i{font-style:normal;background:#fff;color:#b5482b;border-radius:10px;padding:1px 7px;margin-left:6px;font-size:13px}#kcp{position:fixed;right:12px;bottom:64px;z-index:99998;width:400px;height:min(640px,calc(100% - 80px));background:#fff;border-radius:14px;box-shadow:0 6px 28px rgba(0,0,0,.35);overflow:hidden;display:none;flex-direction:column}#kcp.o{display:flex}#kch{display:flex;justify-content:space-between;align-items:center;background:#b5482b;color:#fff;font:600 14px system-ui,sans-serif;padding:8px 12px}#kch button{border:0;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer}#kcf{position:static;flex:1;width:100%;height:auto;border:0}@media(max-width:640px){#kcp{inset:0;width:auto;height:auto;border-radius:0}}</style>
 </head><body>
 <div id="ld"><img src="/logo-h.png" alt="Kiến Huỳnh Design" height="96"><span>Đang mở Cổng Kiến Huỳnh…</span></div>
 <iframe id="f" allow="clipboard-write; camera; microphone; geolocation"></iframe>
 <script>
 var U='https://script.google.com/macros/s/AKfycbwNvA1rt3I6Y78BLstJHYxnGGU4A-i_-RZkvKGXbLRmlK6qhGlPxLAYkDC-XfXgheaN/exec',t='',f=document.getElementById('f');
 try{t=localStorage.getItem('kh_t')||''}catch(e){}
-f.onload=function(){document.getElementById('ld').style.display='none'};
+f.onload=function(){document.getElementById('ld').style.display='none';setTimeout(initChat,1200)};
 f.src=U+(t?'?k='+encodeURIComponent(t):'');
 window.addEventListener('message',function(e){
  try{var h=new URL(e.origin).hostname;if(!/(\.googleusercontent\.com|\.google\.com)$/.test(h))return;
@@ -37,5 +37,22 @@ b.onclick=function(){if(ios&&!sa){alert('Trên iPhone: bấm nút Chia sẻ củ
 try{OneSignal.User.PushSubscription.addEventListener('change',upd);}catch(e){}
 setTimeout(upd,2000);setTimeout(upd,6000);
 });
+</script>
+<script>
+var kcN=0,kcI=null;
+function initChat(){if(kcI)return;
+ var b=document.createElement('button');b.id='kcb';b.innerHTML='💬 Chat nhanh<i hidden></i>';
+ var p=document.createElement('div');p.id='kcp';p.innerHTML='<div id="kch"><span>Chat nhanh · Kiến Huỳnh</span><button aria-label="Đóng">×</button></div>';
+ kcI=document.createElement('iframe');kcI.id='kcf';kcI.src='/chat/?embed=1';p.appendChild(kcI);
+ document.body.appendChild(p);document.body.appendChild(b);
+ function bd(){var i=b.querySelector('i');i.hidden=!kcN;i.textContent=kcN}
+ function tg(o){p.classList.toggle('o',o);if(o){kcN=0;bd()}}
+ b.onclick=function(){tg(!p.classList.contains('o'))};
+ p.querySelector('button').onclick=function(){tg(false)};
+ window.addEventListener('message',function(e){
+  if(e.origin!==location.origin)return;var d=e.data;
+  if(d&&d.kh_chat==='new'&&!p.classList.contains('o')){kcN++;bd()}
+ });
+}
 </script>
 </body></html>
