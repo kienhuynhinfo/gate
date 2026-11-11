@@ -265,7 +265,10 @@ function render(d){
   $("#pn").textContent=P.name||P.code;$("#ps").textContent=P.code+" · Xin chào "+(d.profile.name||"");
   const done=prog.filter(p=>p.status==="Hoàn thành").length;
   const pct=s&&s.percent_done!=null?Number(s.percent_done):prog.length?Math.round(done/prog.length*100):0;
-  const PL=d.plan||{items:[],pct:0},PI=PL.items.filter(x=>!x.agg);
+  const PL=d.plan||{items:[],pct:0};
+  PL.items.forEach(x=>{if(x.status==="Theo kế hoạch"&&x.end_date&&x.end_date<tdy()){x.status="Hoàn thành";x.pct=100;}});
+  {const lv=PL.items.filter(x=>!x.agg);PL.pct=lv.length?Math.round(lv.reduce((m,x)=>m+x.pct,0)/lv.length):0;}
+  const PI=PL.items.filter(x=>!x.agg);
   const curPh=(()=>{const t=tdy(),nd=PI.filter(x=>x.status!=="Hoàn thành").sort((a,b)=>String(a.start_date).localeCompare(String(b.start_date)));const c=nd.find(x=>x.start_date<=t)||nd[0];return c?c.phase:"";})();
   if(PI.length)$("#hc").innerHTML='<div class="muted">Giai đoạn thi công hiện tại</div><div class="big">'+esc(curPh||"Hoàn thiện")+'</div><div class="bar"><i style="width:'+PL.pct+'%"></i></div><div class="muted">'+PI.filter(x=>x.status==="Hoàn thành").length+"/"+PI.length+" hạng mục thi công hoàn thành · "+PL.pct+"%</div>";
   else $("#hc").innerHTML='<div class="muted">Giai đoạn hiện tại</div><div class="big">'+esc(s&&s.phase?s.phase:"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,pct))+'%"></i></div><div class="muted">'+done+"/"+prog.length+" hạng mục hoàn thành · "+pct+"%"+(s&&s.condition?" · "+esc(s.condition):"")+"</div>";
