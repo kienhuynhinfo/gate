@@ -261,8 +261,13 @@ function ChatBox(host,ch,rows,hint){
   bt.onclick=send;inp.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
   box.add(rows||[],true);boxes.push(box);return box;
 }
+function khPush(em){if(location.hostname!=='gate.kienhuynh.studio'||window.__osl||!/^[^@\s]+@[^@\s]+$/.test(String(em||'')))return;window.__osl=1;var sc=document.createElement('script');sc.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';sc.defer=true;document.head.appendChild(sc);window.OneSignalDeferred=window.OneSignalDeferred||[];OneSignalDeferred.push(async function(OS){await OS.init({appId:'85e0e6df-ef26-4895-9108-a253f0b1d7a3'});try{OS.Notifications.addEventListener('foregroundWillDisplay',function(ev){try{ev.preventDefault();ev.notification.display();}catch(x){}});}catch(x){}OS.login('kh:'+String(em).toLowerCase());
+var ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=window.navigator.standalone||matchMedia('(display-mode: standalone)').matches;var b=document.createElement('button');b.id='khbell';b.textContent='🔔 Bật thông báo';b.style.cssText='position:fixed;right:12px;bottom:84px;z-index:9999;padding:8px 13px;border:0;border-radius:20px;background:#b5482b;color:#fff;font:600 13px system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none';document.body.appendChild(b);
+function upd(){try{var ok=('Notification' in window)&&Notification.permission==='granted'&&OS.User.PushSubscription.optedIn;b.style.display=ok?'none':'block';}catch(e){b.style.display='block';}}
+b.onclick=function(){if(ios&&!sa){alert('Trên iPhone: bấm nút Chia sẻ của Safari, chọn Thêm vào Màn hình chính, rồi mở Cổng từ biểu tượng mới để bật thông báo.');return;}if(!('Notification' in window)){alert('Thiết bị này chưa hỗ trợ thông báo.');return;}if(Notification.permission==='denied'){alert('Thông báo đang bị chặn. Vào Cài đặt của trình duyệt, bật lại Thông báo cho trang này.');return;}OS.Notifications.requestPermission().then(function(){return OS.User.PushSubscription.optIn();}).then(upd,upd);};
+upd();try{OS.User.PushSubscription.addEventListener('change',upd);}catch(x){}});}
 function render(d){
-  D=d;me=d.email||me;const P=d.project,s=d.site,prog=d.progress||[];
+  D=d;me=d.email||me;try{khPush(me);}catch(_){}const P=d.project,s=d.site,prog=d.progress||[];
   $("#pn").textContent=P.name||P.code;$("#ps").textContent=P.code+" · Xin chào "+(d.profile.name||"");
   const done=prog.filter(p=>p.status==="Hoàn thành").length;
   const pct=s&&s.percent_done!=null?Number(s.percent_done):prog.length?Math.round(done/prog.length*100):0;
