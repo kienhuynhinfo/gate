@@ -415,7 +415,10 @@ $("#cprev").onclick=()=>{CAL.m--;if(CAL.m<1){CAL.m=12;CAL.y--;}renderCal();};
 $("#cnext").onclick=()=>{CAL.m++;if(CAL.m>12){CAL.m=1;CAL.y++;}renderCal();};
 $("#dmx").onclick=()=>$("#dm").classList.add("hide");
 $("#dm").addEventListener("click",e=>{if(e.target.id==="dm")$("#dm").classList.add("hide");});
-document.addEventListener("error",e=>{const i=e.target;if(i&&i.tagName==="IMG"&&i.closest(".grid")){const d=document.createElement("div");d.className="ph";d.textContent="Ảnh đang cập nhật";i.replaceWith(d);}},true);
+document.addEventListener("error",e=>{const i=e.target;if(i&&i.tagName==="IMG"&&i.closest(".grid")){
+  const n=Number(i.dataset.r||0);
+  if(n<3){i.dataset.r=n+1;const u=i.src.replace(/&r=\d+$/,"");setTimeout(()=>{i.src=u+"&r="+(n+1);},1200*(n+1)+Math.random()*800);return;}
+  const d=document.createElement("div");d.className="ph";d.textContent="Ảnh đang cập nhật";i.replaceWith(d);}},true);
 function setTheme(t,save){if(!["default","wabi","gantt"].includes(t))t="default";document.documentElement.setAttribute("data-theme",t);if(save){try{localStorage.setItem("kh_th",t);}catch(_){}}document.querySelectorAll("#thb button").forEach(b=>b.classList.toggle("on",b.dataset.th===t));}
 try{setTheme(localStorage.getItem("kh_th")||"default",false);}catch(_){setTheme("default",false);}
 $("#thb").onclick=e=>{const b=e.target.closest("button");if(b)setTheme(b.dataset.th,true);};
