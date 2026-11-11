@@ -165,14 +165,15 @@ async function call(b){const r=await fetch(API,{method:"POST",headers:{"Content-
 const fmt=d=>{if(!d)return"—";const[y,m,x]=String(d).slice(0,10).split("-");return x+"/"+m+"/"+y;};
 function stTag(p){const s=p.status||"";if(s==="Hoàn thành")return'<span class="tag ok">Hoàn thành</span>';if(/Cần đẩy/.test(s))return'<span class="tag late">'+esc(s)+"</span>";if(/chờ/i.test(s))return'<span class="tag warn">'+esc(s)+"</span>";return'<span class="tag">'+esc(s)+"</span>";}
 const _n=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
-const _dep=s=>{const x=_n((s.title||"")+" "+(s.grp||""));return /ket cau/.test(x)?1:/kien truc|thiet ke/.test(x)?0:/noi that/.test(x)?2:/thi cong|xay dung/.test(x)?3:/hanh chinh/.test(x)?4:5;};
+const _dep=s=>{const x=_n((s.title||"")+" "+(s.grp||""));return /kien truc|thiet ke/.test(x)?0:/ket cau|thi cong|xay dung/.test(x)?1:/noi that/.test(x)?2:/hanh chinh/.test(x)?3:4;};
+const _tt=s=>{const t=s.title||s.grp||"";return /xay dung/.test(_n(t))&&!/hanh chinh/.test(_n(t))?t+" (phụ trách kết cấu)":t;};
 const _lead=s=>/truong phong|leader|giam doc|quan ly/.test(_n(s.title));
 const sortStaff=st=>(st||[]).slice().sort((a,b)=>(_lead(b)-_lead(a))||(_dep(a)-_dep(b))||String(a.name).localeCompare(String(b.name),"vi"));
 const chips=st=>{st=sortStaff(st);if(!st.length)return'<div class="muted">Đang cập nhật nhân sự phụ trách.</div>';
-  const one=s=>'<div class="chip'+(_lead(s)?' ld':'')+'"><b>'+esc(s.name)+"</b>"+esc(s.title||s.grp)+"</div>";
+  const one=s=>'<div class="chip'+(_lead(s)?' ld':'')+'"><b>'+esc(s.name)+"</b>"+esc(_tt(s))+"</div>";
   const L=st.filter(_lead),O=st.filter(s=>!_lead(s));
   return (L.length?'<div class="gl">Trưởng phòng / Leader</div><div class="staff">'+L.map(one).join("")+"</div>":"")+(O.length?'<div class="gl">Nhân sự phụ trách</div><div class="staff">'+O.map(one).join("")+"</div>":"");};
-const mini=st=>{st=sortStaff(st);return st.length?st.map(s=>esc(s.name)+" ("+esc((s.title||s.grp).replace(/^Trưởng phòng /,"TP "))+")").join(" · "):"Đang cập nhật";};
+const mini=st=>{st=sortStaff(st);return st.length?st.map(s=>esc(s.name)+" ("+esc(_tt(s).replace(/^Trưởng phòng /,"TP "))+")").join(" · "):"Đang cập nhật";};
 
 /* Chat box dung chung (nhom / rieng) */
 function ChatBox(host,ch,rows,hint){
