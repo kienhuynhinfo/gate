@@ -56,6 +56,8 @@ body{padding-bottom:84px}
 .staff{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .chip{background:var(--brand-l);color:var(--brand-d);border-radius:12px;padding:6px 11px;font-size:13px;line-height:1.3}
 .chip b{display:block}
+.frow{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}.frow>div{flex:1;min-width:130px}.frow .btn{flex:none}
+.sub{font-size:12px;color:var(--muted);margin-top:8px}
 .chip.ld{background:var(--brand);color:#fff}
 .gl{font-size:12px;color:var(--muted);margin:10px 0 2px;font-weight:600}
 .mini{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px}
@@ -105,7 +107,8 @@ details.sm summary::after{content:" ▾"}
   </div></header>
   <div class="tabs"><div id="tabs">
     <button data-t="home" class="on" ><i><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></i>Tổng quan</button>
-    <button data-t="diary"><i><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg></i>Nhật ký</button>
+    <button data-t="design"><i><svg viewBox="0 0 24 24"><path d="M3 21l3-1 12-12-2-2L4 18zM14 6l2 2M3 21l1-3"/></svg></i>Thiết kế</button>
+    <button data-t="build"><i><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg></i>Thi công</button>
     <button data-t="docs"><i><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6zM14 3v5h5M9 13h7M9 17h7"/></svg></i>Hồ sơ</button>
     <button data-t="adv"><i><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg></i>Tư vấn</button>
     <button data-t="me"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>Cá nhân</button>
@@ -116,10 +119,19 @@ details.sm summary::after{content:" ▾"}
       <div class="card" id="hc"></div>
       <div class="card"><h2>Thông tin dự án</h2><div id="info"></div></div>
       <div class="card"><h2>Việc sắp tới</h2><div id="next"></div></div>
-      <div class="card" id="pl"></div>
+      <div class="card"><h2>Tiến độ chung</h2><div id="ov"></div></div>
       <div class="card"><h2>Nhân sự phụ trách</h2><div class="staff" id="staffH"></div></div>
     </div>
-    <div id="v-diary" class="hide"><div id="dl"></div></div>
+    <div id="v-design" class="hide"><div class="card" id="dsum"></div><div id="dlist"></div></div>
+    <div id="v-build" class="hide">
+      <div class="card" id="bsum"></div>
+      <div class="card" id="blist"></div>
+      <div class="card"><h2>Nhật ký thi công</h2>
+        <div class="frow"><div><label>Từ ngày</label><input type="date" id="df"></div><div><label>Đến ngày</label><input type="date" id="dt"></div><button class="btn ghost" id="dclr">Xoá lọc</button></div>
+        <div class="muted" id="dcount" style="margin-top:6px"></div>
+      </div>
+      <div id="dl"></div>
+    </div>
     <div id="v-docs" class="hide"><div id="dc"></div></div>
     <div id="v-me" class="hide">
       <div class="card"><h2>Thông tin cá nhân</h2>
@@ -209,10 +221,22 @@ function render(d){
   const nx=prog.filter(p=>p.status!=="Hoàn thành").sort((a,b)=>(a.due_date||"9").localeCompare(b.due_date||"9")).slice(0,4);
   $("#next").innerHTML=nx.length?nx.map(p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+"</div></div>").join(""):'<div class="empty">Các hạng mục đã hoàn thành.</div>';
   $("#staffH").innerHTML=chips(d.staff);$("#staffC").innerHTML=mini(d.staff);
-  $("#pl").innerHTML=prog.length?"<h2>Các hạng mục</h2>"+prog.map(p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.discipline?"<span>"+esc(p.discipline)+"</span>":"")+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+"</div></div>").join(""):'<div class="empty">Chưa có hạng mục nào được cập nhật.</div>';
-  // nhat ky
-  const dl=d.diary||[];
-  $("#dl").innerHTML=dl.length?dl.map(e=>'<div class="card"><h2>'+fmt(e.day)+(e.title?" · "+esc(e.title):"")+'</h2><div>'+esc(e.summary||"")+'</div><div class="grid">'+(e.photos||[]).map(p=>'<img loading="lazy" src="'+esc(thumb(p))+'" data-full="'+esc(full(p))+'" alt="'+esc(p.caption||"")+'">').join("")+"</div></div>").join(""):'<div class="card"><div class="empty">Dự án chưa bước vào thi công nên chưa có nhật ký. Khi thi công, nhật ký hằng ngày (ảnh, clip, đánh giá) sẽ hiện tại đây và khớp với tiến độ dự án.</div></div>';
+  // phan loai tien do: thi cong = Xay dung / Thi cong; con lai = thiet ke (gom ca bao gia)
+  const isB=p=>/xây dựng|thi công/i.test(p.discipline||"");
+  const pB=prog.filter(isB),pD=prog.filter(p=>!isB(p));
+  const dn=a=>a.filter(p=>p.status==="Hoàn thành").length,pc=a=>a.length?Math.round(dn(a)/a.length*100):0;
+  const prow=p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+(p.done_date?"<span>Xong: "+fmt(p.done_date)+"</span>":"")+"</div></div>";
+  $("#ov").innerHTML='<div class="kv"><span>Thiết kế</span><span>'+dn(pD)+"/"+pD.length+' hạng mục</span></div><div class="bar"><i style="width:'+pc(pD)+'%"></i></div><div class="kv"><span>Thi công</span><span>'+(s&&s.phase?esc(s.phase):"Chưa bắt đầu")+(s&&s.percent_done!=null?" · "+Number(s.percent_done)+"%":"")+'</span></div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,s&&s.percent_done!=null?Number(s.percent_done):pc(pB)))+'%"></i></div>';
+  // tab Thiet ke
+  const grp={};pD.forEach(p=>(grp[p.discipline||"Khác"]=grp[p.discipline||"Khác"]||[]).push(p));
+  $("#dsum").innerHTML='<h2>Tiến độ thiết kế</h2><div class="big">'+pc(pD)+'%</div><div class="bar"><i style="width:'+pc(pD)+'%"></i></div><div class="muted">'+dn(pD)+"/"+pD.length+' hạng mục hoàn thành</div><div class="sub">Dữ liệu cập nhật trực tiếp từ hệ thống quản lý dự án của Kiến Huỳnh.</div>';
+  $("#dlist").innerHTML=Object.keys(grp).length?Object.keys(grp).map(k=>'<div class="card"><h2>'+esc(k)+"</h2>"+grp[k].map(prow).join("")+"</div>").join(""):'<div class="card"><div class="empty">Chưa có hạng mục thiết kế nào được cập nhật.</div></div>';
+  // tab Thi cong
+  $("#bsum").innerHTML='<h2>Tiến độ thi công</h2>'+(s?'<div class="big">'+esc(s.phase||"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,Number(s.percent_done||0)))+'%"></i></div><div class="muted">Hoàn thành khoảng '+Number(s.percent_done||0)+'%'+(s.updated_at?" · cập nhật "+fmt(s.updated_at):"")+"</div>"+(s.condition?'<div class="sub">'+esc(s.condition)+"</div>":""):'<div class="empty">Dự án chưa bước vào thi công.</div>')+'<div class="sub">Dữ liệu cập nhật trực tiếp từ hệ thống quản lý dự án của Kiến Huỳnh.</div>';
+  $("#blist").innerHTML=pB.length?"<h2>Hạng mục thi công</h2>"+pB.map(prow).join(""):"";
+  $("#blist").classList.toggle("hide",!pB.length);
+  // nhat ky thi cong (loc theo ngay)
+  DIARY=(d.diary||[]);renderDiary();
   // ho so
   const kinds={};(d.docs||[]).forEach(x=>(kinds[x.kind]=kinds[x.kind]||[]).push(x));
   const ord=["Hồ sơ thiết kế","Tiến độ","Nhật ký thi công","Biên bản họp"];const ks=Object.keys(kinds).sort((a,b)=>{const x=ord.indexOf(a),y=ord.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
@@ -245,9 +269,16 @@ $("#lf").addEventListener("submit",async e=>{e.preventDefault();$("#le").textCon
     token=r.token;me=$("#em").value.trim();try{localStorage.setItem("kh_tk_"+CODE+SLUG,token);localStorage.setItem("kh_em",me);}catch(_){}
     await enter();}catch(_){$("#le").textContent="Không kết nối được, vui lòng thử lại";}finally{$("#lbt").disabled=false;}});
 $("#lo").onclick=()=>{try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}location.reload();};
+let DIARY=[];
+function renderDiary(){const f=$("#df").value,t=$("#dt").value;
+  const list=DIARY.filter(e=>{const x=String(e.day||"").slice(0,10);return (!f||x>=f)&&(!t||x<=t);});
+  $("#dcount").textContent=DIARY.length?(list.length+"/"+DIARY.length+" ngày nhật ký"):"";
+  $("#dl").innerHTML=list.length?list.map(e=>'<div class="card"><h2>'+fmt(e.day)+(e.title?" · "+esc(e.title):"")+'</h2><div>'+esc(e.summary||"")+'</div><div class="grid">'+(e.photos||[]).map(p=>'<img loading="lazy" src="'+esc(thumb(p))+'" data-full="'+esc(full(p))+'" alt="'+esc(p.caption||"")+'">').join("")+"</div></div>").join(""):'<div class="card"><div class="empty">'+(DIARY.length?"Không có nhật ký trong khoảng ngày đã chọn.":"Dự án chưa bước vào thi công nên chưa có nhật ký. Khi thi công, nhật ký hằng ngày (ảnh, clip, đánh giá) sẽ hiện tại đây và khớp với tiến độ dự án.")+"</div></div>";}
+$("#df").onchange=$("#dt").onchange=renderDiary;
+$("#dclr").onclick=()=>{$("#df").value="";$("#dt").value="";renderDiary();};
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["home","diary","docs","adv","me"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);};
+  ["home","design","build","docs","adv","me"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);};
 $("#askbot").onclick=()=>{$("#seg button[data-c=b]").click();$("#cb").scrollIntoView({behavior:"smooth",block:"center"});const i=$("#cb input");i&&i.focus();};
 $("#seg").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#seg button").forEach(x=>x.classList.toggle("on",x===b));
