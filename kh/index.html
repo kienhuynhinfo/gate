@@ -126,6 +126,19 @@ details.sm summary::after{content:" ▾"}
 .dmb h3{font-size:13px;color:var(--muted);margin:14px 0 4px}
 .dmb ul{padding-left:18px;font-size:14px}.dmb li{margin:2px 0}
 .pgl{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-top:3px}
+
+.chatcard{padding-bottom:12px}
+#cg .chat{height:calc(100vh - 330px);min-height:320px;max-height:none}
+#fab{position:fixed;right:14px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:12;border:0;border-radius:999px;background:var(--brand);color:#fff;font:600 13px/1 inherit;font-family:inherit;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+#bp{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:16;display:flex;align-items:flex-end;justify-content:center}
+.bpb{background:var(--bg);width:100%;max-width:760px;height:88vh;display:flex;flex-direction:column;border-radius:18px 18px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
+.bpt{display:flex;gap:6px;margin-bottom:6px}.bpt .btn{flex:1;padding:9px 4px;font-size:13px}
+#advbody{max-height:30vh;overflow-y:auto;font-size:14px}#advbody:empty{display:none}
+#advbody .lib{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}#advbody .lib>div{flex:1}
+.fw{border:1px solid var(--line);background:var(--card);color:var(--brand-d);border-radius:8px;font:inherit;font-size:12px;padding:4px 8px;cursor:pointer;white-space:nowrap}
+.msg .fw{display:block;margin-top:6px}
+#cb{flex:1;min-height:0;display:flex;flex-direction:column}#cb .chat{flex:1;max-height:none}
+#tst{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(130px + env(safe-area-inset-bottom));z-index:30;background:#222;color:#fff;border-radius:999px;padding:9px 16px;font-size:13px}
 </style>
 </head>
 <body>
@@ -200,19 +213,21 @@ details.sm summary::after{content:" ▾"}
       </div>
     </div>
     <div id="v-adv" class="hide">
-      <div class="card">
+      <div class="card chatcard">
         <h2>Chat dự án</h2><details class="sm"><summary>Nhân sự trong nhóm</summary><div class="mini" id="staffC"></div></details>
-        <div class="seg" id="seg"><button data-c="g" class="on">Nhóm dự án</button><button data-c="b">Hỏi trợ lý (riêng)</button></div>
-        <div id="cg"></div><div id="cb" class="hide"></div>
-      </div>
-      <div class="card"><h2>Thư viện &amp; tư vấn</h2>
-        <div class="row2"><button class="btn ghost" data-a="lib">Thư viện mẫu</button><button class="btn ghost" data-a="sug">Đề xuất</button></div>
-        <div style="margin-top:10px"><button class="btn ghost" style="width:100%" data-a="how">Tư vấn thiết kế – thi công</button></div>
-        <div id="advbody" style="margin-top:14px"></div>
-        <button class="btn ghost" style="width:100%;margin-top:10px" id="askbot">Hỏi trợ lý về nội dung này</button>
+        <div id="cg"></div>
       </div>
     </div>
   </main>
+  <button id="fab" type="button" aria-label="Hỏi trợ lý">✦ Hỏi trợ lý</button>
+  <div id="bp" class="hide"><div class="bpb">
+    <div class="dmh"><b>Trợ lý Kiến Huỳnh</b><button class="out" id="bpx">Đóng</button></div>
+    <div class="bpt"><button class="btn ghost" data-a="lib">Thư viện mẫu</button><button class="btn ghost" data-a="sug">Đề xuất</button><button class="btn ghost" data-a="how">Tư vấn TK – TC</button></div>
+    <div id="advbody"></div>
+    <div id="cb"></div>
+    <button class="btn full" id="fwall" style="margin-top:10px">Chuyển cuộc trao đổi sang nhóm dự án</button>
+  </div></div>
+  <div id="tst" class="hide"></div>
 </section>
 <div id="dm" class="hide"><div class="dmb"><div class="dmh"><b id="dmt"></b><button class="out" id="dmx">Đóng</button></div><div id="dmc"></div></div></div>
 <div id="lb" class="hide"><img alt=""></div>
@@ -251,7 +266,8 @@ function ChatBox(host,ch,rows,hint){
     arr.forEach(m=>{if(m.n<=box.last)return;box.last=m.n;if(ch==="g")noteMsg(m);
       const isBot=m.email==="kh-bot"||m.email==="em",mine=(m.email||"").toLowerCase()===me.toLowerCase();
       const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them");
-      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(m.noi_dung)+"<small>"+esc(String(m.ngay||"").slice(0,16))+"</small>";list.appendChild(el);});
+      el.dataset.txt=m.noi_dung;el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
+      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(m.noi_dung)+"<small>"+esc(String(m.ngay||"").slice(0,16))+"</small>"+(ch==="b"&&isBot?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':"");list.appendChild(el);});
     if(!list.children.length)list.innerHTML='<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
     else if(list.firstChild.className==="empty")list.firstChild.remove();
     list.scrollTop=list.scrollHeight;};
@@ -453,15 +469,11 @@ document.addEventListener("click",e=>{if(!e.target.closest("#np")&&!e.target.clo
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   ["home","design","build","docs","adv","me"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);};
-$("#askbot").onclick=()=>{$("#seg button[data-c=b]").click();$("#cb").scrollIntoView({behavior:"smooth",block:"center"});const i=$("#cb input");i&&i.focus();};
-$("#seg").onclick=e=>{const b=e.target.closest("button");if(!b)return;
-  document.querySelectorAll("#seg button").forEach(x=>x.classList.toggle("on",x===b));
-  $("#cg").classList.toggle("hide",b.dataset.c!=="g");$("#cb").classList.toggle("hide",b.dataset.c!=="b");};
 $("#pf-s").onclick=async()=>{const r=await call({a:"profile",name:$("#pf-n").value,phone:$("#pf-p").value,address:$("#pf-a").value,note:$("#pf-t").value});$("#pf-m").textContent=r.ok?"Đã lưu thông tin.":(r.msg||"Chưa lưu được");};
 $("#pw-s").onclick=async()=>{const r=await call({a:"pin",old:$("#pw-o").value,new:$("#pw-n").value});$("#pw-m").textContent=r.ok?"Đã đổi PIN. Lần sau đăng nhập bằng PIN mới.":(r.msg||"Chưa đổi được");if(r.ok){$("#pw-o").value="";$("#pw-n").value="";}};
 /* Tu van */
-const libHtml=items=>items.length?items.map(i=>'<div class="lib"><b>'+esc(i.title)+'</b><p>'+esc(i.summary||"")+"</p></div>").join(""):'<div class="empty">Chưa có nội dung phù hợp. Anh/chị hỏi trợ lý bên dưới để được hỗ trợ.</div>';
-document.querySelector("#v-adv").addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;
+const libHtml=items=>items.length?items.map(i=>'<div class="lib"><div><b>'+esc(i.title)+'</b><p>'+esc(i.summary||"")+'</p></div><button class="fw" data-ti="'+esc(i.title)+'" data-su="'+esc(i.summary||"")+'">Gửi nhóm</button></div>').join(""):'<div class="empty">Chưa có nội dung phù hợp. Anh/chị nhắn trợ lý bên dưới để được hỗ trợ.</div>';
+document.querySelector("#bp").addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;
   const body=$("#advbody"),a=b.dataset.a;body.innerHTML='<div class="muted">Đang tải…</div>';
   if(a==="lib"){body.innerHTML='<input id="lq" placeholder="Tìm mẫu, phong cách…"><div id="lr" style="margin-top:8px"></div>';
     const run=async()=>{const r=await call({a:"lib",q:$("#lq").value});$("#lr").innerHTML=libHtml(r.items||[]);};$("#lq").oninput=()=>{clearTimeout(window._lt);window._lt=setTimeout(run,300);};run();}
@@ -469,6 +481,22 @@ document.querySelector("#v-adv").addEventListener("click",async e=>{const b=e.ta
     const r=await call({a:"lib",q});body.innerHTML="<b>Gợi ý phù hợp với dự án của anh/chị</b>"+libHtml((r.items||[]).slice(0,4))+'<div class="note">Muốn đề xuất chi tiết hơn, anh/chị nhắn trợ lý bên dưới hoặc nhờ kiến trúc sư phụ trách tư vấn.</div>';}
   else{const r=await call({a:"lib",kind:"thiet-ke"}),r2=await call({a:"lib",kind:"thi-cong"});
     body.innerHTML="<b>Thiết kế</b>"+libHtml(r.items||[])+"<b>Thi công</b>"+libHtml(r2.items||[]);}});
+/* Tro ly: nut nho + khung noi, chuyen ket qua sang nhom du an */
+function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");clearTimeout(window._tt);window._tt=setTimeout(()=>e.classList.add("hide"),2200);}
+function openBot(){$("#bp").classList.remove("hide");$("#fab").classList.add("hide");const l=$("#cb .chat");if(l)l.scrollTop=l.scrollHeight;}
+function closeBot(){$("#bp").classList.add("hide");$("#fab").classList.remove("hide");}
+$("#fab").onclick=openBot;$("#bpx").onclick=closeBot;
+$("#bp").addEventListener("click",e=>{if(e.target.id==="bp")closeBot();});
+async function toGroup(text){text=String(text).slice(0,1900);const r=await call({a:"send",ch:"g",text});
+  if(r.ok){boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));toast("Đã chuyển sang nhóm dự án");}else toast(r.msg||"Chưa chuyển được");}
+$("#bp").addEventListener("click",e=>{
+  const w=e.target.closest(".fw");if(w){
+    if(w.dataset.fw){const m=w.closest(".msg");toGroup("Từ trợ lý: "+(m.dataset.txt||""));}
+    else if(w.dataset.ti!==undefined){toGroup("Từ thư viện: "+w.dataset.ti+(w.dataset.su?" – "+w.dataset.su:""));}
+    return;}
+  if(e.target.id==="fwall"){const L=Array.from(document.querySelectorAll("#cb .msg")).slice(-10).map(m=>m.dataset.who+": "+m.dataset.txt);
+    if(!L.length){toast("Chưa có nội dung để chuyển");return;}
+    let t="Chuyển từ cuộc trao đổi với trợ lý:\n"+L.join("\n");if(t.length>1900)t="Chuyển từ cuộc trao đổi với trợ lý:\n…"+t.slice(-1850);toGroup(t);}});
 if(GATE){$("#lf").querySelector("p").textContent="Đăng nhập bằng email và mã PIN do Kiến Huỳnh cấp để vào trang dự án của anh/chị.";}
 else if(token)enter();
 </script>
