@@ -30,6 +30,17 @@ input:focus,textarea:focus{outline:2px solid var(--brand);border-color:transpare
 header{background:var(--bg);border-bottom:1px solid var(--line)}
 .hrow{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hrow .t{font-weight:700;font-size:17px}.hrow .s{color:var(--muted);font-size:13px}
+header{position:relative}
+.rf{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.rf svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rf.spin svg{animation:sp .7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.thb{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thb button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}
+.thb button.on{background:var(--brand-l);color:var(--brand);border-color:var(--brand);font-weight:700}
+.pinlk{text-align:center;margin:14px 0 6px}.pinlk a{color:var(--brand);font-size:13px;font-weight:600;cursor:pointer}
+html[data-theme=wabi]{--bg:#E4E1DB;--card:#F1EFEB;--ink:#2A2622;--muted:#635C54;--line:#CBC5BB;--brand:#8C5A3C;--brand-d:#6F4630;--brand-l:#E8E1D8}
+html[data-theme=gantt]{--bg:#1E1B18;--card:#28241F;--ink:#F4EDE1;--muted:#C2B8A9;--line:#4A423A;--brand:#E8A271;--brand-d:#F0B58C;--brand-l:#3A2E24}
+html[data-theme=gantt] .chip.ld{color:#1E1B18}
 .out{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabs div{max-width:760px;margin:0 auto;display:flex;padding:6px 4px}
@@ -103,7 +114,7 @@ details.sm summary::after{content:" ▾"}
 <section id="app" class="hide">
   <header><div class="hrow">
     <div><div class="t" id="pn">Dự án</div><div class="s" id="ps"></div></div>
-    <button class="out" id="lo">Thoát</button>
+    <button class="rf" id="rf" aria-label="Làm mới"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button><button class="out" id="lo">Thoát</button>
   </div></header>
   <div class="tabs"><div id="tabs">
     <button data-t="home" class="on" ><i><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></i>Tổng quan</button>
@@ -142,7 +153,10 @@ details.sm summary::after{content:" ▾"}
         <label>Ghi chú / mong muốn</label><textarea id="pf-t"></textarea>
         <button class="btn full" id="pf-s">Lưu thông tin</button><div class="ok" id="pf-m"></div>
       </div>
-      <div class="card"><h2>Đổi mã PIN</h2>
+      <div class="card"><h2>Giao diện</h2><div class="muted">Chọn kiểu hiển thị. Máy này sẽ nhớ lựa chọn của anh/chị.</div>
+        <div class="thb" id="thb"><button data-th="default">Mặc định</button><button data-th="wabi">Wabi</button><button data-th="gantt">Gantt (tối)</button></div></div>
+      <div class="pinlk"><a id="pinlk">🔒 Đổi mã PIN</a></div>
+      <div class="card hide" id="pincard"><h2>Đổi mã PIN</h2>
         <label>PIN hiện tại</label><input id="pw-o" type="password" inputmode="numeric" maxlength="4">
         <label>PIN mới (4 số)</label><input id="pw-n" type="password" inputmode="numeric" maxlength="4">
         <button class="btn full" id="pw-s">Đổi PIN</button><div class="ok" id="pw-m"></div>
@@ -256,7 +270,7 @@ document.addEventListener("click",e=>{const i=e.target.closest(".grid img");if(i
 async function enter(){
   const d=await call({a:"home"});
   if(!d.ok){token=null;try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}$("#login").classList.remove("hide");$("#app").classList.add("hide");return false;}
-  $("#login").classList.add("hide");$("#app").classList.remove("hide");render(d);
+  $("#login").classList.add("hide");$("#app").classList.remove("hide");boxes=[];render(d);
   clearInterval(timer);
   timer=setInterval(async()=>{if(document.hidden)return;
     for(const ch of["g","b"]){const mx=Math.max(0,...boxes.filter(b=>b.ch===ch).map(b=>b.last));
@@ -276,6 +290,11 @@ function renderDiary(){const f=$("#df").value,t=$("#dt").value;
   $("#dl").innerHTML=list.length?list.map(e=>'<div class="card"><h2>'+fmt(e.day)+(e.title?" · "+esc(e.title):"")+'</h2><div>'+esc(e.summary||"")+'</div><div class="grid">'+(e.photos||[]).map(p=>'<img loading="lazy" src="'+esc(thumb(p))+'" data-full="'+esc(full(p))+'" alt="'+esc(p.caption||"")+'">').join("")+"</div></div>").join(""):'<div class="card"><div class="empty">'+(DIARY.length?"Không có nhật ký trong khoảng ngày đã chọn.":"Dự án chưa bước vào thi công nên chưa có nhật ký. Khi thi công, nhật ký hằng ngày (ảnh, clip, đánh giá) sẽ hiện tại đây và khớp với tiến độ dự án.")+"</div></div>";}
 $("#df").onchange=$("#dt").onchange=renderDiary;
 $("#dclr").onclick=()=>{$("#df").value="";$("#dt").value="";renderDiary();};
+function setTheme(t,save){if(!["default","wabi","gantt"].includes(t))t="default";document.documentElement.setAttribute("data-theme",t);if(save){try{localStorage.setItem("kh_th",t);}catch(_){}}document.querySelectorAll("#thb button").forEach(b=>b.classList.toggle("on",b.dataset.th===t));}
+try{setTheme(localStorage.getItem("kh_th")||"default",false);}catch(_){setTheme("default",false);}
+$("#thb").onclick=e=>{const b=e.target.closest("button");if(b)setTheme(b.dataset.th,true);};
+$("#pinlk").onclick=()=>$("#pincard").classList.toggle("hide");
+$("#rf").onclick=async()=>{const b=$("#rf");if(b.classList.contains("spin"))return;b.classList.add("spin");try{await enter();}finally{setTimeout(()=>b.classList.remove("spin"),500);}};
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   ["home","design","build","docs","adv","me"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);};
