@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>Cổng Khách · Kiến Huỳnh</title>
 <style>
-:root{--bg:#faf6f1;--card:#fff;--ink:#2b2420;--muted:#7a6d63;--line:#eadfd3;--brand:#b4552d;--brand-d:#8f4120;--brand-l:#f6e3d8;--ok:#3f7d4e;--warn:#c78a12;--late:#b3342b}
+:root{--bg:#F5F5F4;--card:#fff;--ink:#1C1917;--muted:#78716C;--line:#E7E5E4;--brand:#C2410C;--brand-d:#9A3412;--brand-l:#FFF1E8;--ok:#3f7d4e;--warn:#c78a12;--late:#b3342b}
 @media (prefers-color-scheme:dark){:root{--bg:#1c1816;--card:#262120;--ink:#f1e9e2;--muted:#a89b90;--line:#3a322e;--brand:#e0794d;--brand-d:#f19a74;--brand-l:#3a2a22;--ok:#6fbf84;--warn:#e3b04b;--late:#ee7d73}}
 *{box-sizing:border-box;margin:0}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
@@ -31,11 +31,14 @@ header{background:var(--bg);border-bottom:1px solid var(--line)}
 .hrow{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hrow .t{font-weight:700;font-size:17px}.hrow .s{color:var(--muted);font-size:13px}
 .out{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
-.tabs{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-.tabs div{max-width:760px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;padding:0 12px;scrollbar-width:none}
-.tabs div::-webkit-scrollbar{display:none}
-.tabs button{flex:none;background:none;border:0;border-bottom:3px solid transparent;padding:12px 11px;color:var(--muted);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
-.tabs button.on{color:var(--brand);border-color:var(--brand);font-weight:700}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs div{max-width:760px;margin:0 auto;display:flex;padding:6px 4px}
+.tabs button{flex:1;min-width:0;border:0;background:none;padding:2px 0;color:var(--muted);font:inherit;font-size:10.5px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;white-space:nowrap}
+.tabs button i{display:flex;align-items:center;justify-content:center;width:42px;height:28px;border-radius:14px;font-style:normal;transition:background .15s}
+.tabs button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on{color:var(--brand);font-weight:700}
+.tabs button.on i{background:var(--brand-l)}
+body{padding-bottom:84px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px}
 .card h2{font-size:15px;margin-bottom:10px}
 .big{font-size:30px;font-weight:700;color:var(--brand);line-height:1.15}
@@ -96,13 +99,13 @@ header{background:var(--bg);border-bottom:1px solid var(--line)}
     <button class="out" id="lo">Thoát</button>
   </div></header>
   <div class="tabs"><div id="tabs">
-    <button data-t="home" class="on">Tổng quan</button>
-    <button data-t="prog">Tiến độ</button>
-    <button data-t="diary">Nhật ký thi công</button>
-    <button data-t="chat">Chat</button>
-    <button data-t="docs">Hồ sơ</button>
-    <button data-t="me">Cá nhân</button>
-    <button data-t="adv">Tư vấn</button>
+    <button data-t="home" class="on"><i><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></i>Tổng quan</button>
+    <button data-t="prog"><i><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></i>Tiến độ</button>
+    <button data-t="diary"><i><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6"/></svg></i>Nhật ký</button>
+    <button data-t="chat"><i><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></i>Chat</button>
+    <button data-t="docs"><i><svg viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6zM14 3v5h5M9 13h7M9 17h7"/></svg></i>Hồ sơ</button>
+    <button data-t="me"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>Cá nhân</button>
+    <button data-t="adv"><i><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg></i>Tư vấn</button>
   </div></div>
 
   <main class="wrap">
