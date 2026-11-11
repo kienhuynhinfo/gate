@@ -150,11 +150,13 @@ header{background:var(--bg);border-bottom:1px solid var(--line)}
 <div id="lb" class="hide"><img alt=""></div>
 
 <script>
+const _m=location.pathname.match(/\/([A-Za-z0-9-]+)\/(khach\d+)/i)||[];
+const CODE=(_m[1]||"").toUpperCase(),SLUG=(_m[2]||"").toLowerCase();
 const API="https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-portal";
 const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let token=null,me="",D=null,boxes=[],timer=null;
-try{token=localStorage.getItem("kh_tk");me=localStorage.getItem("kh_em")||"";}catch(_){}
+try{token=localStorage.getItem("kh_tk_"+CODE+SLUG);me=localStorage.getItem("kh_em")||"";}catch(_){}
 async function call(b){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 const fmt=d=>{if(!d)return"—";const[y,m,x]=String(d).slice(0,10).split("-");return x+"/"+m+"/"+y;};
 function stTag(p){const s=p.status||"";if(s==="Hoàn thành")return'<span class="tag ok">Hoàn thành</span>';if(/Cần đẩy/.test(s))return'<span class="tag late">'+esc(s)+"</span>";if(/chờ/i.test(s))return'<span class="tag warn">'+esc(s)+"</span>";return'<span class="tag">'+esc(s)+"</span>";}
@@ -217,7 +219,7 @@ document.addEventListener("click",e=>{const i=e.target.closest(".grid img");if(i
 
 async function enter(){
   const d=await call({a:"home"});
-  if(!d.ok){token=null;try{localStorage.removeItem("kh_tk");}catch(_){}$("#login").classList.remove("hide");$("#app").classList.add("hide");return false;}
+  if(!d.ok){token=null;try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}$("#login").classList.remove("hide");$("#app").classList.add("hide");return false;}
   $("#login").classList.add("hide");$("#app").classList.remove("hide");render(d);
   clearInterval(timer);
   timer=setInterval(async()=>{if(document.hidden)return;
@@ -226,11 +228,11 @@ async function enter(){
   return true;
 }
 $("#lf").addEventListener("submit",async e=>{e.preventDefault();$("#le").textContent="";$("#lbt").disabled=true;
-  try{const r=await call({a:"login",email:$("#em").value.trim(),pin:$("#pin").value.trim()});
+  try{const r=await call({a:"login",code:CODE,slug:SLUG,email:$("#em").value.trim(),pin:$("#pin").value.trim()});
     if(!r.ok){$("#le").textContent=r.msg||"Không đăng nhập được";return;}
-    token=r.token;me=$("#em").value.trim();try{localStorage.setItem("kh_tk",token);localStorage.setItem("kh_em",me);}catch(_){}
+    token=r.token;me=$("#em").value.trim();try{localStorage.setItem("kh_tk_"+CODE+SLUG,token);localStorage.setItem("kh_em",me);}catch(_){}
     await enter();}catch(_){$("#le").textContent="Không kết nối được, vui lòng thử lại";}finally{$("#lbt").disabled=false;}});
-$("#lo").onclick=()=>{try{localStorage.removeItem("kh_tk");}catch(_){}location.reload();};
+$("#lo").onclick=()=>{try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}location.reload();};
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   ["home","prog","diary","chat","docs","me","adv"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);};
