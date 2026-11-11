@@ -56,10 +56,15 @@ body{padding-bottom:84px}
 .staff{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .chip{background:var(--brand-l);color:var(--brand-d);border-radius:12px;padding:6px 11px;font-size:13px;line-height:1.3}
 .chip b{display:block}
-.seg{display:flex;gap:6px;margin-top:14px;background:var(--brand-l);padding:4px;border-radius:12px}
+.chip.ld{background:var(--brand);color:#fff}
+.gl{font-size:12px;color:var(--muted);margin:10px 0 2px;font-weight:600}
+.mini{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px}
+details.sm summary{font-size:12px;color:var(--muted);cursor:pointer;list-style:none}
+details.sm summary::after{content:" ▾"}
+.seg{display:flex;gap:6px;margin-top:8px;background:var(--brand-l);padding:4px;border-radius:12px}
 .seg button{flex:1;border:0;background:none;padding:9px 6px;border-radius:9px;font:inherit;font-size:14px;color:var(--brand-d);cursor:pointer}
 .seg button.on{background:var(--card);font-weight:700}
-.chat{display:flex;flex-direction:column;gap:8px;padding:12px 0 6px;max-height:55vh;overflow-y:auto}
+.chat{display:flex;flex-direction:column;gap:8px;padding:8px 0 4px;max-height:38vh;overflow-y:auto}
 .msg{max-width:86%;padding:9px 12px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-break:break-word}
 .msg small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
 .msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}.msg.me small{color:rgba(255,255,255,.75)}
@@ -133,7 +138,7 @@ body{padding-bottom:84px}
     </div>
     <div id="v-adv" class="hide">
       <div class="card">
-        <h2>Chat dự án</h2><div class="muted">Nhân sự phụ trách</div><div class="staff" id="staffC"></div>
+        <h2>Chat dự án</h2><details class="sm"><summary>Nhân sự trong nhóm</summary><div class="mini" id="staffC"></div></details>
         <div class="seg" id="seg"><button data-c="g" class="on">Nhóm dự án</button><button data-c="b">Hỏi trợ lý (riêng)</button></div>
         <div id="cg"></div><div id="cb" class="hide"></div>
       </div>
@@ -159,7 +164,15 @@ try{token=localStorage.getItem("kh_tk_"+CODE+SLUG);me=localStorage.getItem("kh_e
 async function call(b){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 const fmt=d=>{if(!d)return"—";const[y,m,x]=String(d).slice(0,10).split("-");return x+"/"+m+"/"+y;};
 function stTag(p){const s=p.status||"";if(s==="Hoàn thành")return'<span class="tag ok">Hoàn thành</span>';if(/Cần đẩy/.test(s))return'<span class="tag late">'+esc(s)+"</span>";if(/chờ/i.test(s))return'<span class="tag warn">'+esc(s)+"</span>";return'<span class="tag">'+esc(s)+"</span>";}
-const chips=st=>(st||[]).length?st.map(s=>'<div class="chip"><b>'+esc(s.name)+"</b>"+esc(s.title||s.grp)+" · "+esc(s.grp)+"</div>").join(""):'<div class="muted">Đang cập nhật nhân sự phụ trách.</div>';
+const _n=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
+const _dep=s=>{const x=_n((s.title||"")+" "+(s.grp||""));return /ket cau/.test(x)?1:/kien truc|thiet ke/.test(x)?0:/noi that/.test(x)?2:/thi cong|xay dung/.test(x)?3:/hanh chinh/.test(x)?4:5;};
+const _lead=s=>/truong phong|leader|giam doc|quan ly/.test(_n(s.title));
+const sortStaff=st=>(st||[]).slice().sort((a,b)=>(_lead(b)-_lead(a))||(_dep(a)-_dep(b))||String(a.name).localeCompare(String(b.name),"vi"));
+const chips=st=>{st=sortStaff(st);if(!st.length)return'<div class="muted">Đang cập nhật nhân sự phụ trách.</div>';
+  const one=s=>'<div class="chip'+(_lead(s)?' ld':'')+'"><b>'+esc(s.name)+"</b>"+esc(s.title||s.grp)+"</div>";
+  const L=st.filter(_lead),O=st.filter(s=>!_lead(s));
+  return (L.length?'<div class="gl">Trưởng phòng / Leader</div><div class="staff">'+L.map(one).join("")+"</div>":"")+(O.length?'<div class="gl">Nhân sự phụ trách</div><div class="staff">'+O.map(one).join("")+"</div>":"");};
+const mini=st=>{st=sortStaff(st);return st.length?st.map(s=>esc(s.name)+" ("+esc((s.title||s.grp).replace(/^Trưởng phòng /,"TP "))+")").join(" · "):"Đang cập nhật";};
 
 /* Chat box dung chung (nhom / rieng) */
 function ChatBox(host,ch,rows,hint){
@@ -194,7 +207,7 @@ function render(d){
   $("#info").innerHTML=kv.map(x=>'<div class="kv"><span>'+esc(x[0])+"</span><span>"+esc(x[1])+"</span></div>").join("");
   const nx=prog.filter(p=>p.status!=="Hoàn thành").sort((a,b)=>(a.due_date||"9").localeCompare(b.due_date||"9")).slice(0,4);
   $("#next").innerHTML=nx.length?nx.map(p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+"</div></div>").join(""):'<div class="empty">Các hạng mục đã hoàn thành.</div>';
-  $("#staffH").innerHTML=chips(d.staff);$("#staffC").innerHTML=chips(d.staff);
+  $("#staffH").innerHTML=chips(d.staff);$("#staffC").innerHTML=mini(d.staff);
   $("#pl").innerHTML=prog.length?"<h2>Các hạng mục</h2>"+prog.map(p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.discipline?"<span>"+esc(p.discipline)+"</span>":"")+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+"</div></div>").join(""):'<div class="empty">Chưa có hạng mục nào được cập nhật.</div>';
   // nhat ky
   const dl=d.diary||[];
