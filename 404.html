@@ -260,6 +260,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
         <button class="btn full" id="pf-s">Lưu thông tin</button><div class="ok" id="pf-m"></div>
       </div>
       <div class="card"><h2>Hợp đồng</h2><div class="muted">Giá trị, các đợt tạm ứng và file hợp đồng của dự án.</div><button class="btn ghost" style="width:100%;margin-top:10px" id="ctbtn">Xem hợp đồng</button></div>
+      <div class="card"><h2>Dự toán</h2><div class="muted">Dự toán chi phí của dự án do Kiến Huỳnh lập.</div><div id="dtl" style="margin-top:6px"></div></div>
       <div class="card"><h2>Giao diện</h2><div class="muted">Chọn kiểu hiển thị. Máy này sẽ nhớ lựa chọn của anh/chị.</div>
         <div class="thb" id="thb"><button data-th="default">Mặc định</button><button data-th="wabi">Wabi</button><button data-th="gantt">Gantt (tối)</button></div></div>
       <div class="pinlk"><a id="pinlk">🔒 Đổi mã PIN</a></div>
@@ -417,8 +418,8 @@ function render(d){
   const kinds={};(d.docs||[]).forEach(x=>(kinds[x.kind]=kinds[x.kind]||[]).push(x));
   const ord=["Hồ sơ thiết kế","Tiến độ","Nhật ký thi công","Biên bản họp"];const ks=Object.keys(kinds).sort((a,b)=>{const x=ord.indexOf(a),y=ord.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
   renderDocs(d.docs||[]);
-  {const ks2=ks.filter(k=>k!=="Hồ sơ thiết kế"&&kinds[k].some(x=>!isRender(x)));
-   $("#dc").innerHTML=ks2.map(k=>'<div class="card"><h2>'+esc(k)+"</h2>"+kinds[k].filter(x=>!isRender(x)).map(docRow).join("")+"</div>").join("");}
+  {const ks2=ks.filter(k=>k!=="Hồ sơ thiết kế"&&kinds[k].some(x=>!isRender(x)&&!isDt(x)));
+   $("#dc").innerHTML=ks2.map(k=>'<div class="card"><h2>'+esc(k)+"</h2>"+kinds[k].filter(x=>!isRender(x)&&!isDt(x)).map(docRow).join("")+"</div>").join("");}
   // ca nhan
   const pf=d.profile||{};$("#pf-n").value=pf.name||"";$("#pf-e").value=pf.email||me;$("#pf-p").value=pf.phone||"";$("#pf-a").value=pf.address||"";$("#pf-t").value=pf.note_kh||"";
   // chat
@@ -457,6 +458,7 @@ const sd=x=>x?String(x).slice(8,10)+"/"+String(x).slice(5,7):"—";
 /* ===== Sap xep bo mon: Kien truc, Ket cau, Noi that, MEP ===== */
 const discRank=t=>{const x=_n(t);return /kien truc/.test(x)?0:/ket cau/.test(x)?1:/noi that/.test(x)?2:/mep|dien|nuoc|co dien|cap thoat/.test(x)?3:4;};
 const discSort=(a,b)=>(discRank(a)-discRank(b))||String(a).localeCompare(String(b),"vi");
+const isDt=x=>/du toan/.test(_n((x.kind||"")+" "+(x.title||"")));
 const isRender=x=>/phoi canh|render|hinh anh|\b3d\b|perspective/.test(_n((x.kind||"")+" "+(x.title||"")));
 const BM=["Kiến trúc","Kết cấu","Nội thất","MEP (điện nước)"];
 /* ===== Lo trinh (stepper) thay cho Gantt ===== */
@@ -490,11 +492,12 @@ const pvUrl=u=>{u=String(u||"");if(/drive\.google\.com\/drive\/folders\//.test(u
 let DOCS=[];
 function renderDocs(docs){
   DOCS=docs;
-  const dd=docs.filter(x=>!isRender(x)&&/thiết kế|hồ sơ/i.test(x.kind||"")||(!isRender(x)&&docBm(x)>=0));
+  const dd=docs.filter(x=>!isDt(x)&&!isRender(x)&&/thiết kế|hồ sơ/i.test(x.kind||"")||(!isRender(x)&&docBm(x)>=0));
   const cnt=[0,0,0,0,0];dd.forEach(x=>{const b=docBm(x);cnt[b<0?4:b]++;});
   const names=BM.concat(["Hồ sơ khác"]);
   $("#bmb").innerHTML=names.map((n,i)=>i===4&&!cnt[4]?"":'<button data-bm="'+i+'">'+esc(n)+"<small>"+(cnt[i]?cnt[i]+" tài liệu":"Chưa có")+"</small></button>").join("");
   renderRenders(docs);
+  {const dt=docs.filter(isDt);$("#dtl").innerHTML=dt.length?dt.map(docRow).join(""):'<div class="note">Dự toán sẽ được đăng tại đây khi được chốt. Cần trao đổi thêm, anh/chị nhắn trong Nhóm dự án.</div>';}
 }
 let RV=[],RI=0;
 function renderRenders(docs){
@@ -509,7 +512,7 @@ $("#rvs").onclick=async()=>{const v=$("#rvm").value.trim();if(!v){toast("Anh/ch�
 $("#rvok").onclick=async()=>{await toGroup("Đồng ý hình phối cảnh «"+RV[RI].title+"».");};
 document.addEventListener("click",e=>{const g=e.target.closest("[data-rv]");if(g)showRv(Number(g.dataset.rv));});
 function openBm(i){
-  const list=DOCS.filter(x=>!isRender(x)&&((i===4?docBm(x)<0&&/thiết kế|hồ sơ/i.test(x.kind||""):docBm(x)===i)));
+  const list=DOCS.filter(x=>!isRender(x)&&!isDt(x)&&((i===4?docBm(x)<0&&/thiết kế|hồ sơ/i.test(x.kind||""):docBm(x)===i)));
   $("#dmt").textContent="Hồ sơ "+(i===4?"khác":BM[i]);
   $("#dmc").innerHTML=list.length?list.map(docRow).join(""):'<div class="empty">Hồ sơ bộ môn này chưa được đăng. Khi hồ sơ được chốt, Kiến Huỳnh sẽ cập nhật tại đây.</div>';
   $("#dm").classList.remove("hide");}
