@@ -178,6 +178,21 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 .rvi button{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.85);font-size:22px;cursor:pointer}
 #rvp{left:8px}#rvn{right:8px}
 #rvm{margin-top:10px;width:100%}
+
+.cmp{flex:none;margin-top:8px;position:relative}
+.cmp textarea{width:100%;min-height:46px;max-height:120px;border-radius:18px;padding:11px 14px;resize:none;display:block}
+.cbar{display:flex;gap:6px;align-items:center;margin-top:6px}.cbar .sp{flex:1}
+.ib{width:38px;height:38px;border-radius:50%;border:0;background:var(--brand-l);color:var(--brand-d);display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;font-size:20px;flex:none}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.cbar .btn{padding:9px 20px;border-radius:19px}
+.emp{position:absolute;bottom:100%;left:0;right:0;max-width:340px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:2px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:5;margin-bottom:6px}
+.emp button{font-size:22px;background:none;border:0;padding:4px;cursor:pointer}
+.tray{display:flex;gap:8px;overflow-x:auto;padding:6px 0}
+.tray .tt{position:relative;flex:none;width:58px;height:58px;border-radius:10px;overflow:hidden;background:var(--brand-l);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--brand-d);text-align:center}
+.tray img{width:100%;height:100%;object-fit:cover}
+.tray a{position:absolute;top:1px;right:3px;color:#fff;background:rgba(0,0,0,.55);border-radius:50%;width:16px;height:16px;line-height:16px;font-size:11px;text-align:center;cursor:pointer}
+.msg .im{display:block;max-width:100%;width:220px;border-radius:10px;margin-top:6px;cursor:pointer;background:var(--brand-l);min-height:60px}
+.msg .fl{display:inline-block;margin-top:6px;padding:6px 10px;border-radius:10px;background:rgba(127,127,127,.15);font-size:13px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -306,24 +321,54 @@ const chips=st=>{st=sortStaff(st);if(!st.length)return'<div class="muted">Đang 
 const mini=st=>{st=sortStaff(st);return st.length?st.map(s=>esc(s.name)+" ("+esc(_tt(s).replace(/^Trưởng phòng /,"TP "))+")").join(" · "):"Đang cập nhật";};
 
 /* Chat box dung chung (nhom / rieng) */
+const FR=/\[\[F:([^|\]]+)\|([^|\]]*)\|([^\]]*)\]\]/g;
+let ATT=false;
+const IC_CLIP='<svg viewBox="0 0 24 24"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7-7l9-9a3.3 3.3 0 0 1 4.7 4.7l-9 9a1.7 1.7 0 0 1-2.4-2.4l8.3-8.3"/></svg>';
+const IC_IMG='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>';
+const EMO=["😀","😁","😂","🤣","😊","😍","😘","😎","🤔","😅","😢","😭","😡","👍","👎","👏","🙏","💪","🔥","❤️","🎉","✅","❌","⚠️","📌","📎","📷","📅","⏰","💡"];
+const blobCache={};
+async function fileBlob(ch,id){const k=ch+id;if(blobCache[k])return blobCache[k];const r=await call({a:"file",ch,id});if(!r.ok)return null;
+  const bin=atob(r.b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return blobCache[k]=URL.createObjectURL(new Blob([u],{type:r.mime||"application/octet-stream"}));}
+function shrink(f){return new Promise(ok=>{const rd=new FileReader();rd.onerror=()=>ok(null);rd.onload=()=>{const im=new Image();im.onerror=()=>ok(null);im.onload=()=>{
+  const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+  const d=c.toDataURL("image/jpeg",.72);ok({b64:d.split(",")[1],mime:"image/jpeg",name:(f.name||"anh").replace(/\.[^.]+$/,"")+".jpg",thumb:d});};im.src=rd.result;};rd.readAsDataURL(f);});}
 function ChatBox(host,ch,rows,hint){
-  const box={ch,last:0};
-  host.innerHTML='<div class="chat"></div><div class="send"><input maxlength="2000" placeholder="'+esc(hint)+'"><button class="btn">Gửi</button></div>';
-  const list=$(".chat",host),inp=$("input",host),bt=$("button",host);
+  const box={ch,last:0,pend:[]};
+  host.innerHTML='<div class="chat"></div><div class="cmp"><div class="tray hide"></div><textarea rows="1" maxlength="2000" placeholder="'+esc(hint)+'"></textarea>'
+   +'<div class="cbar">'+(ATT?'<button type="button" class="ib" data-k="file" aria-label="Đính kèm tệp">'+IC_CLIP+'</button><button type="button" class="ib" data-k="img" aria-label="Gửi ảnh">'+IC_IMG+'</button>':'')+'<button type="button" class="ib" data-k="emo" aria-label="Biểu tượng">😊</button><span class="sp"></span><button type="button" class="btn" data-k="send">Gửi</button></div>'
+   +(ATT?'<input type="file" class="hide" data-i="file" multiple><input type="file" class="hide" data-i="img" accept="image/*" multiple>':"")+'</div>';
+  const list=$(".chat",host),inp=$("textarea",host),bt=$('[data-k=send]',host),tray=$(".tray",host),cmp=$(".cmp",host);
   box.add=(arr,reset)=>{
     if(reset){list.innerHTML="";box.last=0;}
     arr.forEach(m=>{if(m.n<=box.last)return;box.last=m.n;if(ch==="g")noteMsg(m);
       const isBot=m.email==="kh-bot"||m.email==="em",mine=(m.email||"").toLowerCase()===me.toLowerCase();
+      let att="";const txt=String(m.noi_dung||"").replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
       const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them");
-      el.dataset.txt=m.noi_dung;el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
-      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(m.noi_dung)+"<small>"+esc(String(m.ngay||"").slice(0,16))+"</small>"+(ch==="b"&&isBot?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':"");list.appendChild(el);});
+      el.dataset.txt=txt||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
+      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(txt)+att+"<small>"+esc(String(m.ngay||"").slice(0,16))+"</small>"+(ch==="b"&&isBot?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':"");list.appendChild(el);
+      el.querySelectorAll("img.im").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
     if(!list.children.length)list.innerHTML='<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
     else if(list.firstChild.className==="empty")list.firstChild.remove();
     list.scrollTop=list.scrollHeight;};
-  const send=async()=>{const v=inp.value.trim();if(!v)return;inp.value="";bt.disabled=true;
-    const r=await call({a:"send",ch,text:v});bt.disabled=false;
-    if(r.ok){boxes.forEach(b=>b.ch===ch&&b.add(r.msgs,false));}else alert(r.msg||"Gửi chưa được");};
-  bt.onclick=send;inp.addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+  list.addEventListener("click",async e=>{const im=e.target.closest("img.im");if(im&&im.src){$("#lb img").src=im.src;$("#lb").classList.remove("hide");return;}
+    const f=e.target.closest(".fl");if(f){const u=await fileBlob(ch,f.dataset.f);if(u){const a=document.createElement("a");a.href=u;a.download=f.dataset.n||"tep";a.click();}}});
+  const drawTray=()=>{tray.classList.toggle("hide",!box.pend.length);tray.innerHTML=box.pend.map((x,i)=>'<div class="tt">'+(x.thumb?'<img src="'+x.thumb+'">':esc(String(x.name).slice(0,14)))+'<a data-x="'+i+'">✕</a></div>').join("");};
+  tray.onclick=e=>{const a=e.target.closest("[data-x]");if(a){box.pend.splice(Number(a.dataset.x),1);drawTray();}};
+  const take=async(inpEl)=>{const L=[...inpEl.files];inpEl.value="";for(const f of L){if(box.pend.length>=6){toast("Tối đa 6 tệp mỗi lần gửi");break;}
+    let x=null;if(/^image\//.test(f.type)&&f.type!=="image/gif")x=await shrink(f);
+    if(!x){if(f.size>4e6){toast((f.name||"Tệp")+" quá lớn (tối đa 4 MB)");continue;}x=await new Promise(ok=>{const r=new FileReader();r.onerror=()=>ok(null);r.onload=()=>ok({b64:String(r.result).split(",")[1],mime:f.type||"application/octet-stream",name:f.name||"tep"});r.readAsDataURL(f);});}
+    if(x)box.pend.push(x);}drawTray();};
+  cmp.addEventListener("click",e=>{const k=e.target.closest("[data-k]");if(!k)return;const t=k.dataset.k;
+    if(t==="file"||t==="img"){$('[data-i='+t+']',cmp).click();}
+    else if(t==="send")send();
+    else if(t==="emo"){const old=$(".emp",cmp);if(old){old.remove();return;}const d=document.createElement("div");d.className="emp";
+      EMO.forEach(em=>{const b=document.createElement("button");b.type="button";b.textContent=em;b.onclick=()=>{const a=inp.selectionStart==null?inp.value.length:inp.selectionStart,z=inp.selectionEnd==null?a:inp.selectionEnd;inp.value=inp.value.slice(0,a)+em+inp.value.slice(z);const q=a+em.length;inp.focus();try{inp.setSelectionRange(q,q);}catch(_){}d.remove();};d.appendChild(b);});cmp.appendChild(d);}});
+  cmp.querySelectorAll("input[type=file]").forEach(i=>i.onchange=()=>take(i));
+  inp.addEventListener("input",()=>{inp.style.height="auto";inp.style.height=Math.min(120,inp.scrollHeight)+"px";});
+  const send=async()=>{const v=inp.value.trim();if(!v&&!box.pend.length)return;const fs=box.pend.slice();inp.value="";inp.style.height="auto";box.pend=[];drawTray();bt.disabled=true;
+    const r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});bt.disabled=false;
+    if(r.ok){boxes.forEach(b=>b.ch===ch&&b.add(r.msgs,false));}else{inp.value=v;box.pend=fs;drawTray();alert(r.msg||"Gửi chưa được");}};
+  inp.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.shiftKey||e.isComposing)return;if(window.matchMedia&&window.matchMedia("(hover:none) and (pointer:coarse)").matches)return;e.preventDefault();send();});
   box.add(rows||[],true);boxes.push(box);return box;
 }
 function khPush(em){if(location.hostname!=='gate.kienhuynh.studio'||window.__osl||!/^[^@\s]+@[^@\s]+$/.test(String(em||'')))return;window.__osl=1;var sc=document.createElement('script');sc.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';sc.defer=true;document.head.appendChild(sc);window.OneSignalDeferred=window.OneSignalDeferred||[];OneSignalDeferred.push(async function(OS){await OS.init({appId:'85e0e6df-ef26-4895-9108-a253f0b1d7a3'});try{OS.Notifications.addEventListener('foregroundWillDisplay',function(ev){try{ev.preventDefault();ev.notification.display();}catch(x){}});}catch(x){}OS.login('kh:'+String(em).toLowerCase());
@@ -377,9 +422,9 @@ function render(d){
   // ca nhan
   const pf=d.profile||{};$("#pf-n").value=pf.name||"";$("#pf-e").value=pf.email||me;$("#pf-p").value=pf.phone||"";$("#pf-a").value=pf.address||"";$("#pf-t").value=pf.note_kh||"";
   // chat
-  boxes=[];
-  ChatBox($("#cg"),"g",d.chatG,"Nhắn cho nhóm dự án… (gõ @bot để hỏi trợ lý)");
-  ChatBox($("#cb"),"b",d.chatB,"Hỏi riêng trợ lý… (chỉ trợ lý và team phụ trách xem)");
+  boxes=[];ATT=!!(d.caps&&d.caps.indexOf("att")>=0);
+  ChatBox($("#cg"),"g",d.chatG,"Nhắn cho nhóm dự án… (gõ @bot)");
+  ChatBox($("#cb"),"b",d.chatB,"Hỏi riêng trợ lý…");
 }
 const gid=u=>{const m=String(u||"").match(/[-\w]{25,}/);return m?m[0]:"";};
 const thumb=p=>p.thumb||(p.id||gid(p.url)?"https://drive.google.com/thumbnail?id="+(p.id||gid(p.url))+"&sz=w600":p.url);
