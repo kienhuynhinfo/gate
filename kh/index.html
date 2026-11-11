@@ -189,6 +189,7 @@ details.sm summary::after{content:" ▾"}
         <label>Ghi chú / mong muốn</label><textarea id="pf-t"></textarea>
         <button class="btn full" id="pf-s">Lưu thông tin</button><div class="ok" id="pf-m"></div>
       </div>
+      <div class="card"><h2>Hợp đồng</h2><div class="muted">Giá trị, các đợt tạm ứng và file hợp đồng của dự án.</div><button class="btn ghost" style="width:100%;margin-top:10px" id="ctbtn">Xem hợp đồng</button></div>
       <div class="card"><h2>Giao diện</h2><div class="muted">Chọn kiểu hiển thị. Máy này sẽ nhớ lựa chọn của anh/chị.</div>
         <div class="thb" id="thb"><button data-th="default">Mặc định</button><button data-th="wabi">Wabi</button><button data-th="gantt">Gantt (tối)</button></div></div>
       <div class="pinlk"><a id="pinlk">🔒 Đổi mã PIN</a></div>
@@ -399,6 +400,16 @@ function openDay(k){
   }
   $("#dmc").innerHTML=h;$("#dm").classList.remove("hide");
 }
+function openContract(){
+  const d=D||{},f=d.finance,cd=(d.docs||[]).filter(x=>/hợp đồng/i.test(x.kind||x.title||""));
+  $("#dmt").textContent="Hợp đồng · "+((d.project&&d.project.name)||"");
+  let h="";
+  if(cd.length)h+="<h3>File hợp đồng</h3>"+cd.map(x=>'<div class="item"><div class="n">'+esc(x.title)+'</div><div class="m"><span>'+fmt(x.doc_date)+"</span>"+(x.url?'<a href="'+esc(x.url)+'" target="_blank" rel="noopener">Mở xem</a>':'<span class="tag warn">Đang cấp quyền xem</span>')+"</div></div>").join("");
+  else h+='<div class="note">File hợp đồng bản ký sẽ được đăng tại đây. Hiện anh/chị xem được các thông tin chính bên dưới; cần bản đầy đủ vui lòng nhắn trong Chat nhóm.</div>';
+  h+=f?finHtml(f):'<div class="empty">Chưa có thông tin hợp đồng.</div>';
+  $("#dmc").innerHTML=h;$("#dm").classList.remove("hide");
+}
+$("#ctbtn").onclick=openContract;
 $("#cal").onclick=e=>{const b=e.target.closest("button[data-d]");if(b)openDay(b.dataset.d);};
 $("#cprev").onclick=()=>{CAL.m--;if(CAL.m<1){CAL.m=12;CAL.y--;}renderCal();};
 $("#cnext").onclick=()=>{CAL.m++;if(CAL.m>12){CAL.m=1;CAL.y++;}renderCal();};
