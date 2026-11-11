@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Cổng Khách · Kiến Huỳnh</title>
+<style>
+:root{
+  --bg:#faf6f1; --card:#ffffff; --ink:#2b2420; --muted:#7a6d63; --line:#eadfd3;
+  --brand:#b4552d; --brand-d:#8f4120; --brand-l:#f6e3d8; --ok:#3f7d4e; --warn:#c78a12; --late:#b3342b;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#1c1816;--card:#262120;--ink:#f1e9e2;--muted:#a89b90;--line:#3a322e;--brand:#e0794d;--brand-d:#f19a74;--brand-l:#3a2a22;--ok:#6fbf84;--warn:#e3b04b;--late:#ee7d73}
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.hide{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 96px}
+/* dang nhap */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.lbox{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 24px}
+.brand{font-weight:700;letter-spacing:.04em;color:var(--brand);font-size:13px;text-transform:uppercase}
+.lbox h1{font-size:22px;margin:6px 0 4px}
+.lbox p{color:var(--muted);font-size:14px;margin-bottom:18px}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px}
+input:focus{outline:2px solid var(--brand);border-color:transparent}
+.btn{width:100%;margin-top:18px;padding:13px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.btn:disabled{opacity:.6}
+.err{color:var(--late);font-size:13px;margin-top:10px;min-height:18px}
+/* app */
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.hrow{max-width:720px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hrow .t{font-weight:700;font-size:17px}
+.hrow .s{color:var(--muted);font-size:13px}
+.out{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{flex:1;max-width:180px;background:none;border:0;padding:11px 4px;color:var(--muted);font-size:12px;cursor:pointer}
+nav button b{display:block;font-size:19px;font-weight:400}
+nav button.on{color:var(--brand);font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px}
+.card h2{font-size:15px;margin-bottom:10px}
+.big{font-size:34px;font-weight:700;color:var(--brand);line-height:1.1}
+.muted{color:var(--muted);font-size:13px}
+.bar{height:10px;background:var(--brand-l);border-radius:99px;overflow:hidden;margin:12px 0 6px}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.kv:first-of-type{border-top:0}
+.kv span:first-child{color:var(--muted)}
+.item{padding:12px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .n{font-weight:600}
+.item .m{display:flex;flex-wrap:wrap;gap:6px 12px;color:var(--muted);font-size:13px;margin-top:3px;align-items:center}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--brand-l);color:var(--brand-d)}
+.tag.ok{background:rgba(63,125,78,.15);color:var(--ok)}
+.tag.warn{background:rgba(199,138,18,.15);color:var(--warn)}
+.tag.late{background:rgba(179,52,43,.15);color:var(--late)}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:8px;padding:14px 0 8px}
+.msg{max-width:84%;padding:9px 12px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.msg small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.msg.me small{color:rgba(255,255,255,.75)}
+.msg.them{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.send{position:fixed;left:0;right:0;bottom:58px;padding:8px 16px calc(8px + env(safe-area-inset-bottom)*0);background:var(--bg);border-top:1px solid var(--line);z-index:5}
+.send div{max-width:720px;margin:0 auto;display:flex;gap:8px}
+.send input{flex:1}
+.send button{padding:0 18px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-weight:600;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:28px 8px;font-size:14px}
+.note{background:var(--brand-l);color:var(--brand-d);border-radius:12px;padding:10px 12px;font-size:13px;margin-top:12px}
+</style>
+</head>
+<body>
+
+<section id="login" class="login">
+  <form class="lbox" id="lf" autocomplete="on">
+    <div class="brand">Kiến Huỳnh Design</div>
+    <h1>Cổng Khách hàng</h1>
+    <p>Theo dõi tiến độ công trình và trao đổi trực tiếp với đội ngũ Kiến Huỳnh.</p>
+    <label for="em">Email</label>
+    <input id="em" name="username" type="text" inputmode="email" autocomplete="username" autocapitalize="none" required>
+    <label for="pin">Mã PIN (4 số)</label>
+    <input id="pin" name="password" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="current-password" required>
+    <button class="btn" id="lb" type="submit">Đăng nhập</button>
+    <div class="err" id="le"></div>
+  </form>
+</section>
+
+<section id="app" class="hide">
+  <header><div class="hrow">
+    <div><div class="t" id="pn">Dự án</div><div class="s" id="ps"></div></div>
+    <button class="out" id="lo">Thoát</button>
+  </div></header>
+
+  <main class="wrap">
+    <div id="v-home">
+      <div class="card" id="hc"></div>
+      <div class="card"><h2>Thông tin dự án</h2><div id="info"></div></div>
+      <div class="note">Cổng đang chạy thử. Hồ sơ bản vẽ, nhật ký thi công và thư viện mẫu nhà sẽ được bổ sung dần.</div>
+    </div>
+    <div id="v-prog" class="hide"><div class="card" id="pl"></div></div>
+    <div id="v-chat" class="hide">
+      <div class="chat" id="cl"></div>
+    </div>
+  </main>
+
+  <div class="send hide" id="sb"><div>
+    <input id="ci" placeholder="Nhập câu hỏi cho đội ngũ Kiến Huỳnh…" maxlength="2000">
+    <button id="cs">Gửi</button>
+  </div></div>
+
+  <nav>
+    <button data-t="home" class="on"><b>◧</b>Tổng quan</button>
+    <button data-t="prog"><b>☰</b>Tiến độ</button>
+    <button data-t="chat"><b>✉</b>Trao đổi</button>
+  </nav>
+</section>
+
+<script>
+const API = "https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-portal";
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let token = null, me = "", last = 0, timer = null;
+try { token = localStorage.getItem("kh_tk"); } catch (_) {}
+
+async function call(body) {
+  const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, ...body }) });
+  return r.json();
+}
+function fmt(d) { if (!d) return "—"; const [y, m, dd] = String(d).slice(0, 10).split("-"); return dd + "/" + m + "/" + y; }
+function stTag(p) {
+  const s = String(p.status || "").toLowerCase();
+  if (p.done_date || /xong|hoàn|done/.test(s)) return '<span class="tag ok">Hoàn thành</span>';
+  if (/trễ|late|quá/.test(s)) return '<span class="tag late">Chậm</span>';
+  if (/chờ|duyệt/.test(s)) return '<span class="tag warn">' + esc(p.status) + "</span>";
+  return '<span class="tag">' + esc(p.status || "Đang thực hiện") + "</span>";
+}
+function render(d) {
+  me = d.email || me;
+  $("#pn").textContent = d.project.name || d.project.code;
+  $("#ps").textContent = d.project.code + " · Xin chào " + (d.name || "");
+  const s = d.site, prog = d.progress || [];
+  const done = prog.filter((p) => p.done_date || /xong|hoàn|done/i.test(p.status || "")).length;
+  const pct = s && s.percent_done != null ? Number(s.percent_done) : prog.length ? Math.round((done / prog.length) * 100) : 0;
+  $("#hc").innerHTML = '<div class="muted">Giai đoạn hiện tại</div><div class="big">' + esc(s && s.phase ? s.phase : "Đang triển khai") +
+    '</div><div class="bar"><i style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div><div class="muted">' +
+    done + "/" + prog.length + " hạng mục hoàn thành · " + pct + "%" + (s && s.condition ? " · " + esc(s.condition) : "") + "</div>";
+  const kv = [["Mã dự án", d.project.code]];
+  (d.areas || []).forEach((a) => kv.push([a.item || "Hạng mục", (a.floor_area ? Number(a.floor_area).toLocaleString("vi-VN") + " m²" : "—") + (a.floors ? " · " + a.floors + " tầng" : "")]));
+  if (s && s.updated_at) kv.push(["Cập nhật gần nhất", fmt(s.updated_at)]);
+  $("#info").innerHTML = kv.map((x) => '<div class="kv"><span>' + esc(x[0]) + "</span><span>" + esc(x[1]) + "</span></div>").join("");
+  $("#pl").innerHTML = prog.length ? "<h2>Các hạng mục</h2>" + prog.map((p) =>
+    '<div class="item"><div class="n">' + esc(p.item) + '</div><div class="m">' + stTag(p) +
+    (p.discipline ? "<span>" + esc(p.discipline) + "</span>" : "") +
+    (p.due_date ? "<span>Hạn: " + fmt(p.due_date) + "</span>" : "") + "</div></div>").join("") : '<div class="empty">Chưa có hạng mục nào được cập nhật.</div>';
+  renderChat(d.chat || [], true);
+}
+function renderChat(rows, reset) {
+  const box = $("#cl");
+  if (reset) { box.innerHTML = ""; last = 0; }
+  rows.forEach((m) => {
+    if (m.n <= last) return;
+    last = m.n;
+    const mine = (m.email || "").toLowerCase() === me.toLowerCase();
+    const el = document.createElement("div");
+    el.className = "msg " + (mine ? "me" : "them");
+    el.innerHTML = esc(m.noi_dung) + "<small>" + (mine ? "" : esc(m.ten) + " · ") + esc(String(m.ngay || "").slice(0, 16)) + "</small>";
+    box.appendChild(el);
+  });
+  if (!box.children.length) box.innerHTML = '<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
+  else if (box.firstChild.className === "empty") box.firstChild.remove();
+  if (rows.length) window.scrollTo(0, document.body.scrollHeight);
+}
+async function enter() {
+  const d = await call({ a: "home" });
+  if (!d.ok) { token = null; try { localStorage.removeItem("kh_tk"); } catch (_) {} $("#login").classList.remove("hide"); $("#app").classList.add("hide"); return false; }
+  $("#login").classList.add("hide"); $("#app").classList.remove("hide");
+  render(d);
+  clearInterval(timer);
+  timer = setInterval(async () => {
+    if (document.hidden) return;
+    const r = await call({ a: "chat", after: last });
+    if (r.ok && r.chat.length) renderChat(r.chat, false);
+  }, 6000);
+  return true;
+}
+$("#lf").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("#le").textContent = ""; $("#lb").disabled = true;
+  try {
+    const r = await call({ a: "login", email: $("#em").value.trim(), pin: $("#pin").value.trim() });
+    if (!r.ok) { $("#le").textContent = r.msg || "Không đăng nhập được"; return; }
+    token = r.token; me = $("#em").value.trim();
+    try { localStorage.setItem("kh_tk", token); localStorage.setItem("kh_em", me); } catch (_) {}
+    await enter();
+  } catch (_) { $("#le").textContent = "Không kết nối được, vui lòng thử lại"; }
+  finally { $("#lb").disabled = false; }
+});
+$("#lo").onclick = () => { try { localStorage.removeItem("kh_tk"); } catch (_) {} location.reload(); };
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
+  ["home", "prog", "chat"].forEach((t) => $("#v-" + t).classList.toggle("hide", t !== b.dataset.t));
+  $("#sb").classList.toggle("hide", b.dataset.t !== "chat");
+  window.scrollTo(0, b.dataset.t === "chat" ? document.body.scrollHeight : 0);
+});
+async function send() {
+  const v = $("#ci").value.trim(); if (!v) return;
+  $("#ci").value = ""; $("#cs").disabled = true;
+  const r = await call({ a: "send", text: v });
+  $("#cs").disabled = false;
+  if (r.ok) renderChat([r.msg], false); else alert(r.msg || "Gửi chưa được");
+}
+$("#cs").onclick = send;
+$("#ci").addEventListener("keydown", (e) => { if (e.key === "Enter") send(); });
+try { me = localStorage.getItem("kh_em") || ""; } catch (_) {}
+if (token) enter();
+</script>
+</body>
+</html>
