@@ -102,6 +102,30 @@ details.sm summary::after{content:" ▾"}
 .grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;background:var(--brand-l)}
 #lb{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}
 #lb img{max-width:100%;max-height:100%;border-radius:8px}
+.tlh{font-weight:700;font-size:13px;margin:12px 0 2px}.tlh:first-child{margin-top:0}
+.tlr{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;padding:4px 0;font-size:12.5px;line-height:1.2}
+.tlr small{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+.tlt{position:relative;height:14px;background:var(--brand-l);border-radius:7px}
+.tlt .bx{position:absolute;top:0;height:100%;border-radius:7px;background:var(--line);overflow:hidden}
+.tlt .bx i{display:block;height:100%;background:var(--brand)}
+.tlt .td{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--late);border-radius:2px}
+.tla{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin:2px 0 0 104px}
+.tlg{font-size:11px;color:var(--muted);margin-top:8px}.tlg b{color:var(--late)}
+.ph{display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:10px;background:var(--brand-l);color:var(--muted);font-size:11px;text-align:center;padding:6px}
+.calh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.calh b{font-size:15px}.calh button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;width:38px;height:34px;font-size:18px;cursor:pointer}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.cal span{font-size:11px;color:var(--muted);text-align:center;font-weight:600}
+.cal button{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
+.cal button.has{background:var(--brand);color:#fff;font-weight:700;border-color:var(--brand)}
+.cal button.tdy{outline:2px solid var(--late);outline-offset:-2px}
+.cal i{visibility:hidden}
+#dm{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:15;display:flex;align-items:flex-end;justify-content:center}
+.dmb{background:var(--bg);width:100%;max-width:760px;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:16px 16px 28px}
+.dmh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.dmh b{font-size:16px}
+.dmb h3{font-size:13px;color:var(--muted);margin:14px 0 4px}
+.dmb ul{padding-left:18px;font-size:14px}.dmb li{margin:2px 0}
+.pgl{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-top:3px}
 </style>
 </head>
 <body>
@@ -147,12 +171,13 @@ details.sm summary::after{content:" ▾"}
     <div id="v-design" class="hide"><div class="card" id="dsum"></div><div id="dlist"></div></div>
     <div id="v-build" class="hide">
       <div class="card" id="bsum"></div>
-      <div class="card" id="blist"></div>
+      <div class="card" id="bplan"></div>
+      <div class="card" id="bfin"></div>
       <div class="card"><h2>Nhật ký thi công</h2>
-        <div class="frow"><div><label>Từ ngày</label><input type="date" id="df"></div><div><label>Đến ngày</label><input type="date" id="dt"></div><button class="btn ghost" id="dclr">Xoá lọc</button></div>
-        <div class="muted" id="dcount" style="margin-top:6px"></div>
+        <div class="calh"><button id="cprev" aria-label="Tháng trước">‹</button><b id="cmon"></b><button id="cnext" aria-label="Tháng sau">›</button></div>
+        <div class="cal" id="cal"></div>
+        <div class="sub">Ngày tô màu là ngày có báo cáo. Chạm vào ngày để xem báo cáo và hình ảnh.</div>
       </div>
-      <div id="dl"></div>
     </div>
     <div id="v-docs" class="hide"><div id="dc"></div></div>
     <div id="v-me" class="hide">
@@ -188,11 +213,14 @@ details.sm summary::after{content:" ▾"}
     </div>
   </main>
 </section>
+<div id="dm" class="hide"><div class="dmb"><div class="dmh"><b id="dmt"></b><button class="out" id="dmx">Đóng</button></div><div id="dmc"></div></div></div>
 <div id="lb" class="hide"><img alt=""></div>
 
 <script>
-const _m=location.pathname.match(/\/([A-Za-z0-9-]+)\/(khach\d+)/i)||[];
+const _m=location.pathname.match(/^\/kh\/([A-Za-z0-9-]+)\/(khach\d+)/i)||[];
 const CODE=(_m[1]||"").toUpperCase(),SLUG=(_m[2]||"").toLowerCase();
+const GATE=!CODE;
+if(GATE&&!/^\/kh\/?$/i.test(location.pathname))location.replace("/");
 const API="https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-portal";
 const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -237,31 +265,34 @@ function render(d){
   $("#pn").textContent=P.name||P.code;$("#ps").textContent=P.code+" · Xin chào "+(d.profile.name||"");
   const done=prog.filter(p=>p.status==="Hoàn thành").length;
   const pct=s&&s.percent_done!=null?Number(s.percent_done):prog.length?Math.round(done/prog.length*100):0;
-  $("#hc").innerHTML='<div class="muted">Giai đoạn hiện tại</div><div class="big">'+esc(s&&s.phase?s.phase:"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,pct))+'%"></i></div><div class="muted">'+done+"/"+prog.length+" hạng mục hoàn thành · "+pct+"%"+(s&&s.condition?" · "+esc(s.condition):"")+"</div>";
+  const PL=d.plan||{items:[],pct:0},PI=PL.items.filter(x=>!x.agg);
+  const curPh=(()=>{const t=tdy(),nd=PI.filter(x=>x.status!=="Hoàn thành").sort((a,b)=>String(a.start_date).localeCompare(String(b.start_date)));const c=nd.find(x=>x.start_date<=t)||nd[0];return c?c.phase:"";})();
+  if(PI.length)$("#hc").innerHTML='<div class="muted">Giai đoạn thi công hiện tại</div><div class="big">'+esc(curPh||"Hoàn thiện")+'</div><div class="bar"><i style="width:'+PL.pct+'%"></i></div><div class="muted">'+PI.filter(x=>x.status==="Hoàn thành").length+"/"+PI.length+" hạng mục thi công hoàn thành · "+PL.pct+"%</div>";
+  else $("#hc").innerHTML='<div class="muted">Giai đoạn hiện tại</div><div class="big">'+esc(s&&s.phase?s.phase:"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,pct))+'%"></i></div><div class="muted">'+done+"/"+prog.length+" hạng mục hoàn thành · "+pct+"%"+(s&&s.condition?" · "+esc(s.condition):"")+"</div>";
   const kv=[["Mã dự án",P.code]];
   (d.areas||[]).forEach(a=>kv.push([a.item||"Hạng mục",(a.floor_area?Number(a.floor_area).toLocaleString("vi-VN")+" m²":"—")+(a.floors?" · "+a.floors+" tầng":"")]));
   if(s&&s.updated_at)kv.push(["Cập nhật gần nhất",fmt(s.updated_at)]);
   kv.push(["Hồ sơ thiết kế",(d.docs||[]).length+" tài liệu"]);
   $("#info").innerHTML=kv.map(x=>'<div class="kv"><span>'+esc(x[0])+"</span><span>"+esc(x[1])+"</span></div>").join("");
-  const nx=prog.filter(p=>p.status!=="Hoàn thành").sort((a,b)=>(a.due_date||"9").localeCompare(b.due_date||"9")).slice(0,4);
+  const nx=prog.filter(p=>p.status!=="Hoàn thành").concat(PI.filter(x=>x.status!=="Hoàn thành").map(x=>({item:x.content,status:x.status,due_date:x.end_date}))).sort((a,b)=>(a.due_date||"9").localeCompare(b.due_date||"9")).slice(0,5);
   $("#next").innerHTML=nx.length?nx.map(p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+"</div></div>").join(""):'<div class="empty">Các hạng mục đã hoàn thành.</div>';
   $("#staffH").innerHTML=chips(d.staff);$("#staffC").innerHTML=mini(d.staff);
-  // phan loai tien do: thi cong = Xay dung / Thi cong; con lai = thiet ke (gom ca bao gia)
-  const isB=p=>/xây dựng|thi công/i.test(p.discipline||"");
-  const pB=prog.filter(isB),pD=prog.filter(p=>!isB(p));
+  // thiet ke = cac hang muc tien do da loc phia may chu; thi cong = ke hoach thi cong
+  const pD=prog;
   const dn=a=>a.filter(p=>p.status==="Hoàn thành").length,pc=a=>a.length?Math.round(dn(a)/a.length*100):0;
   const prow=p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+(p.done_date?"<span>Xong: "+fmt(p.done_date)+"</span>":"")+"</div></div>";
-  $("#ov").innerHTML='<div class="kv"><span>Thiết kế</span><span>'+dn(pD)+"/"+pD.length+' hạng mục</span></div><div class="bar"><i style="width:'+pc(pD)+'%"></i></div><div class="kv"><span>Thi công</span><span>'+(s&&s.phase?esc(s.phase):"Chưa bắt đầu")+(s&&s.percent_done!=null?" · "+Number(s.percent_done)+"%":"")+'</span></div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,s&&s.percent_done!=null?Number(s.percent_done):pc(pB)))+'%"></i></div>';
-  // tab Thiet ke
+  $("#ov").innerHTML=buildTL(d);
   const grp={};pD.forEach(p=>(grp[p.discipline||"Khác"]=grp[p.discipline||"Khác"]||[]).push(p));
   $("#dsum").innerHTML='<h2>Tiến độ thiết kế</h2><div class="big">'+pc(pD)+'%</div><div class="bar"><i style="width:'+pc(pD)+'%"></i></div><div class="muted">'+dn(pD)+"/"+pD.length+' hạng mục hoàn thành</div><div class="sub">Dữ liệu cập nhật trực tiếp từ hệ thống quản lý dự án của Kiến Huỳnh.</div>';
   $("#dlist").innerHTML=Object.keys(grp).length?Object.keys(grp).map(k=>'<div class="card"><h2>'+esc(k)+"</h2>"+grp[k].map(prow).join("")+"</div>").join(""):'<div class="card"><div class="empty">Chưa có hạng mục thiết kế nào được cập nhật.</div></div>';
   // tab Thi cong
-  $("#bsum").innerHTML='<h2>Tiến độ thi công</h2>'+(s?'<div class="big">'+esc(s.phase||"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,Number(s.percent_done||0)))+'%"></i></div><div class="muted">Hoàn thành khoảng '+Number(s.percent_done||0)+'%'+(s.updated_at?" · cập nhật "+fmt(s.updated_at):"")+"</div>"+(s.condition?'<div class="sub">'+esc(s.condition)+"</div>":""):'<div class="empty">Dự án chưa bước vào thi công.</div>')+'<div class="sub">Dữ liệu cập nhật trực tiếp từ hệ thống quản lý dự án của Kiến Huỳnh.</div>';
-  $("#blist").innerHTML=pB.length?"<h2>Hạng mục thi công</h2>"+pB.map(prow).join(""):"";
-  $("#blist").classList.toggle("hide",!pB.length);
-  // nhat ky thi cong (loc theo ngay)
-  DIARY=(d.diary||[]);renderDiary();
+  $("#bsum").innerHTML='<h2>Tiến độ thi công</h2>'+(PI.length?'<div class="big">'+esc(curPh||"Hoàn thiện")+'</div><div class="bar"><i style="width:'+PL.pct+'%"></i></div><div class="muted">Hoàn thành khoảng '+PL.pct+'%'+(PL.total?" · kế hoạch "+fmt(PL.total.start_date)+" – "+fmt(PL.total.end_date):"")+"</div>":(s?'<div class="big">'+esc(s.phase||"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,Number(s.percent_done||0)))+'%"></i></div><div class="muted">Hoàn thành khoảng '+Number(s.percent_done||0)+"%</div>":'<div class="empty">Dự án chưa bước vào thi công.</div>'))+'<div class="sub">Dữ liệu cập nhật trực tiếp từ hệ thống quản lý dự án của Kiến Huỳnh.</div>';
+  $("#bplan").innerHTML=planHtml(PL);$("#bplan").classList.toggle("hide",!PI.length);
+  $("#bfin").innerHTML=finHtml(d.finance);$("#bfin").classList.toggle("hide",!d.finance);
+  // nhat ky thi cong (lich)
+  DIARY=(d.diary||[]);
+  if(!CAL){const last=DIARY[0]&&String(DIARY[0].day).slice(0,7);const t=last||tdy().slice(0,7);CAL={y:+t.slice(0,4),m:+t.slice(5,7)};}
+  renderCal();
   // ho so
   const kinds={};(d.docs||[]).forEach(x=>(kinds[x.kind]=kinds[x.kind]||[]).push(x));
   const ord=["Hồ sơ thiết kế","Tiến độ","Nhật ký thi công","Biên bản họp"];const ks=Object.keys(kinds).sort((a,b)=>{const x=ord.indexOf(a),y=ord.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
@@ -291,16 +322,86 @@ async function enter(){
 $("#lf").addEventListener("submit",async e=>{e.preventDefault();$("#le").textContent="";$("#lbt").disabled=true;
   try{const r=await call({a:"login",code:CODE,slug:SLUG,email:$("#em").value.trim(),pin:$("#pin").value.trim()});
     if(!r.ok){$("#le").textContent=r.msg||"Không đăng nhập được";return;}
-    token=r.token;me=$("#em").value.trim();try{localStorage.setItem("kh_tk_"+CODE+SLUG,token);localStorage.setItem("kh_em",me);}catch(_){}
+    token=r.token;me=$("#em").value.trim();
+    if(GATE){try{localStorage.setItem("kh_tk_"+r.code.toUpperCase()+r.slug,token);localStorage.setItem("kh_em",me);}catch(_){}location.replace("/kh/"+r.code+"/"+r.slug);return;}
+    try{localStorage.setItem("kh_tk_"+CODE+SLUG,token);localStorage.setItem("kh_em",me);}catch(_){}
     await enter();}catch(_){$("#le").textContent="Không kết nối được, vui lòng thử lại";}finally{$("#lbt").disabled=false;}});
 $("#lo").onclick=()=>{try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}location.reload();};
-let DIARY=[];
-function renderDiary(){const f=$("#df").value,t=$("#dt").value;
-  const list=DIARY.filter(e=>{const x=String(e.day||"").slice(0,10);return (!f||x>=f)&&(!t||x<=t);});
-  $("#dcount").textContent=DIARY.length?(list.length+"/"+DIARY.length+" ngày nhật ký"):"";
-  $("#dl").innerHTML=list.length?list.map(e=>'<div class="card"><h2>'+fmt(e.day)+(e.title?" · "+esc(e.title):"")+'</h2><div>'+esc(e.summary||"")+'</div><div class="grid">'+(e.photos||[]).map(p=>'<img loading="lazy" src="'+esc(thumb(p))+'" data-full="'+esc(full(p))+'" alt="'+esc(p.caption||"")+'">').join("")+"</div></div>").join(""):'<div class="card"><div class="empty">'+(DIARY.length?"Không có nhật ký trong khoảng ngày đã chọn.":"Dự án chưa bước vào thi công nên chưa có nhật ký. Khi thi công, nhật ký hằng ngày (ảnh, clip, đánh giá) sẽ hiện tại đây và khớp với tiến độ dự án.")+"</div></div>";}
-$("#df").onchange=$("#dt").onchange=renderDiary;
-$("#dclr").onclick=()=>{$("#df").value="";$("#dt").value="";renderDiary();};
+let DIARY=[],CAL=null;
+const tdy=()=>new Date(Date.now()+7*36e5).toISOString().slice(0,10);
+const dms=x=>Date.parse(String(x).slice(0,10)+"T00:00:00Z");
+const vnd=n=>Number(n||0).toLocaleString("vi-VN")+" đ";
+const sd=x=>x?String(x).slice(8,10)+"/"+String(x).slice(5,7):"—";
+function buildTL(d){
+  const prog=d.progress||[],PL=d.plan||{items:[]};
+  const g={};prog.forEach(p=>(g[p.discipline||"Khác"]=g[p.discipline||"Khác"]||[]).push(p));
+  let h='<div class="tlh">Timeline thiết kế</div>';
+  const ks=Object.keys(g);
+  h+=ks.length?ks.map(k=>{const a=g[k],n=a.filter(p=>p.status==="Hoàn thành").length,pc=Math.round(n/a.length*100);
+    return '<div class="tlr"><div>'+esc(k)+'<small>'+n+"/"+a.length+' hạng mục</small></div><div class="tlt"><div class="bx" style="left:0;width:100%"><i style="width:'+pc+'%"></i></div></div></div>';}).join(""):'<div class="muted">Chưa có hạng mục thiết kế.</div>';
+  h+='<div class="tlh">Timeline thi công</div>';
+  const it=PL.items||[];
+  if(!it.length)return h+'<div class="muted">Dự án chưa có kế hoạch thi công.</div>';
+  const T0=dms(PL.total?PL.total.start_date:it.reduce((a,x)=>x.start_date<a?x.start_date:a,"9999")),T1=dms(PL.total?PL.total.end_date:it.reduce((a,x)=>x.end_date>a?x.end_date:a,"0"));
+  const span=Math.max(1,T1-T0),pos=x=>Math.max(0,Math.min(100,(dms(x)-T0)/span*100));
+  const ph=[];it.forEach(x=>{if(!ph.includes(x.phase))ph.push(x.phase);});
+  const td=pos(tdy());
+  h+=ph.map(n=>{const a=it.filter(x=>x.phase===n),lv=a.filter(x=>!x.agg),L=lv.length?lv:a;
+    const s0=a.reduce((m,x)=>x.start_date<m?x.start_date:m,"9999"),e0=a.reduce((m,x)=>x.end_date>m?x.end_date:m,"0");
+    const pc=Math.round(L.reduce((m,x)=>m+x.pct,0)/L.length),l=pos(s0),w=Math.max(2,pos(e0)-l);
+    return '<div class="tlr"><div>'+esc(n)+'<small>'+sd(s0)+" – "+sd(e0)+" · "+pc+'%</small></div><div class="tlt"><div class="bx" style="left:'+l+"%;width:"+w+'%"><i style="width:'+pc+'%"></i></div><div class="td" style="left:'+td+'%"></div></div></div>';}).join("");
+  return h+'<div class="tla"><span>'+fmt(PL.total?PL.total.start_date:"")+"</span><span>"+fmt(PL.total?PL.total.end_date:"")+'</span></div><div class="tlg"><b>|</b> Hôm nay · phần tô đậm là phần đã hoàn thành</div>';
+}
+function planHtml(PL){
+  const it=PL.items||[];if(!it.length)return"";
+  const ph=[];it.forEach(x=>{if(!ph.includes(x.phase))ph.push(x.phase);});
+  return '<h2>Kế hoạch thi công</h2>'+(PL.total?'<div class="muted">Tổng thời gian: '+fmt(PL.total.start_date)+" – "+fmt(PL.total.end_date)+"</div>":"")+ph.map(n=>{
+    const a=it.filter(x=>x.phase===n),lv=a.filter(x=>!x.agg),L=lv.length?lv:a,pc=Math.round(L.reduce((m,x)=>m+x.pct,0)/L.length);
+    return '<div class="gl" style="margin-top:14px;display:flex;justify-content:space-between"><span>'+esc(n)+"</span><span>"+pc+'%</span></div><div class="bar" style="margin:4px 0 2px"><i style="width:'+pc+'%"></i></div>'+L.map(x=>'<div class="item"><div class="n">'+esc(x.content)+'</div><div class="m">'+stTag(x)+"<span>"+fmt(x.start_date)+" → "+fmt(x.end_date)+"</span></div></div>").join("");}).join("");
+}
+function finHtml(f){
+  if(!f)return"";
+  const nx=f.next;
+  return '<h2>Hợp đồng &amp; tạm ứng</h2><div class="kv"><span>Giá trị hợp đồng</span><span><b>'+vnd(f.contract_value)+'</b></span></div><div class="kv"><span>Chi phí đã thực hiện (đã tạm ứng)</span><span><b>'+vnd(f.paid)+'</b></span></div><div class="bar"><i style="width:'+Math.min(100,f.pct)+'%"></i></div><div class="pgl"><span>Đã thanh toán '+f.pct+'%</span><span>Còn lại '+vnd(f.remaining)+'</span></div>'
+   +(f.receipts.length?'<div class="gl" style="margin-top:14px">Các đợt tạm ứng đã thanh toán</div>'+f.receipts.map(r=>'<div class="kv"><span>'+esc(r.installment||"Tạm ứng")+" · "+fmt(r.date)+"</span><span>"+vnd(r.amount)+"</span></div>").join(""):"")
+   +(nx?'<div class="note"><b>Tạm ứng tiếp theo</b><br>'+esc(nx.installment||"")+"<br>Số tiền dự kiến: <b>"+vnd(nx.amount)+"</b><br>Thời gian: "+(nx.date?fmt(nx.date):"sẽ thông báo theo mốc thi công")+"</div>":'<div class="sub">Hiện chưa có đợt tạm ứng tiếp theo.</div>');
+}
+const MN=["","Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+function renderCal(){
+  const y=CAL.y,m=CAL.m,nd=new Date(Date.UTC(y,m,0)).getUTCDate(),off=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7;
+  const have={};DIARY.forEach(e=>{have[String(e.day).slice(0,10)]=e;});
+  $("#cmon").textContent=MN[m]+" "+y;
+  let h=["T2","T3","T4","T5","T6","T7","CN"].map(x=>"<span>"+x+"</span>").join("")+"<i></i>".repeat(off);
+  const t=tdy();
+  for(let i=1;i<=nd;i++){const k=y+"-"+String(m).padStart(2,"0")+"-"+String(i).padStart(2,"0");
+    h+='<button data-d="'+k+'" class="'+(have[k]?"has ":"")+(k===t?"tdy":"")+'">'+i+"</button>";}
+  $("#cal").innerHTML=h;
+}
+function openDay(k){
+  const e=DIARY.find(x=>String(x.day).slice(0,10)===k),dt=e&&e.detail||{};
+  $("#dmt").textContent="Nhật ký thi công · "+fmt(k);
+  const ul=a=>a&&a.length?"<ul>"+a.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul>":"";
+  let h="";
+  if(!e)h='<div class="empty">Ngày này chưa có báo cáo nhật ký.</div>';
+  else{
+    h+=(e.title?'<div style="font-weight:600">'+esc(e.title)+"</div>":"")+(e.summary?'<div class="muted" style="margin-top:2px">'+esc(e.summary)+"</div>":"");
+    if(dt.weather)h+="<h3>Thời tiết</h3><div>"+esc(dt.weather)+"</div>";
+    if(dt.workers)h+="<h3>Nhân lực</h3><div>"+esc(dt.workers)+"</div>";
+    if(dt.done&&dt.done.length)h+="<h3>Công việc đã thực hiện</h3>"+ul(dt.done);
+    if(dt.review&&dt.review.length)h+="<h3>Đánh giá</h3>"+ul(dt.review);
+    if(dt.next&&dt.next.length)h+="<h3>Kế hoạch ngày tiếp theo</h3>"+ul(dt.next);
+    const ph=e.photos||[];
+    h+="<h3>Hình ảnh"+(dt.photos?" ("+dt.photos+" ảnh"+(dt.clips?", "+dt.clips+" clip":"")+")":"")+"</h3>";
+    h+=ph.length?'<div class="grid">'+ph.map(p=>'<img loading="lazy" src="'+esc(thumb(p))+'" data-full="'+esc(full(p))+'" alt="'+esc(p.caption||"")+'">').join("")+"</div>":'<div class="muted">'+(dt.photos?"Hình ảnh ngày này đang được cập nhật lên cổng.":"Ngày này chưa có hình.")+"</div>";
+  }
+  $("#dmc").innerHTML=h;$("#dm").classList.remove("hide");
+}
+$("#cal").onclick=e=>{const b=e.target.closest("button[data-d]");if(b)openDay(b.dataset.d);};
+$("#cprev").onclick=()=>{CAL.m--;if(CAL.m<1){CAL.m=12;CAL.y--;}renderCal();};
+$("#cnext").onclick=()=>{CAL.m++;if(CAL.m>12){CAL.m=1;CAL.y++;}renderCal();};
+$("#dmx").onclick=()=>$("#dm").classList.add("hide");
+$("#dm").addEventListener("click",e=>{if(e.target.id==="dm")$("#dm").classList.add("hide");});
+document.addEventListener("error",e=>{const i=e.target;if(i&&i.tagName==="IMG"&&i.closest(".grid")){const d=document.createElement("div");d.className="ph";d.textContent="Ảnh đang cập nhật";i.replaceWith(d);}},true);
 function setTheme(t,save){if(!["default","wabi","gantt"].includes(t))t="default";document.documentElement.setAttribute("data-theme",t);if(save){try{localStorage.setItem("kh_th",t);}catch(_){}}document.querySelectorAll("#thb button").forEach(b=>b.classList.toggle("on",b.dataset.th===t));}
 try{setTheme(localStorage.getItem("kh_th")||"default",false);}catch(_){setTheme("default",false);}
 $("#thb").onclick=e=>{const b=e.target.closest("button");if(b)setTheme(b.dataset.th,true);};
@@ -346,7 +447,8 @@ document.querySelector("#v-adv").addEventListener("click",async e=>{const b=e.ta
     const r=await call({a:"lib",q});body.innerHTML="<b>Gợi ý phù hợp với dự án của anh/chị</b>"+libHtml((r.items||[]).slice(0,4))+'<div class="note">Muốn đề xuất chi tiết hơn, anh/chị nhắn trợ lý bên dưới hoặc nhờ kiến trúc sư phụ trách tư vấn.</div>';}
   else{const r=await call({a:"lib",kind:"thiet-ke"}),r2=await call({a:"lib",kind:"thi-cong"});
     body.innerHTML="<b>Thiết kế</b>"+libHtml(r.items||[])+"<b>Thi công</b>"+libHtml(r2.items||[]);}});
-if(token)enter();
+if(GATE){$("#lf").querySelector("p").textContent="Đăng nhập bằng email và mã PIN do Kiến Huỳnh cấp để vào trang dự án của anh/chị.";}
+else if(token)enter();
 </script>
 </body>
 </html>
