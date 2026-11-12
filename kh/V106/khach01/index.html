@@ -731,6 +731,14 @@ const xls=(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d
 const xss=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
 const xk=p=>"kh_"+p+"_"+CODE+SLUG;
 const isMat=x=>/vat lieu|san pham|bang mau/.test(_n((x.kind||"")+" "+(x.title||"")))&&!isRender(x)&&!isDt(x);
+const APIX="https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-extras";
+async function callX(b){try{const r=await fetch(APIX,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return await r.json();}catch(_){return {ok:false,msg:"Mất kết nối"};}}
+const xVN=v=>{const t=Date.parse(v);return isNaN(t)?"":new Date(t+7*36e5).toISOString().slice(0,19).replace("T"," ");};
+let XLOAD=0;
+async function xLoad(d){if(d._x||XLOAD)return;XLOAD=1;const r=await callX({a:"x_home"});XLOAD=0;d._x=1;
+  if(r&&r.ok){d.meta=r.meta||d.meta;d.decisions=r.decisions||[];d.partners=r.partners||[];d.materials=r.materials||[];d.snotes=r.notes||[];d.xok=1;}
+  try{xRender(d);}catch(e){console.error("xRender",e);}}
+const xB64=async u=>{if(/^data:/.test(u))return u.split(",")[1];try{const b=await (await fetch(u)).blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(String(f.result).split(",")[1]);f.onerror=()=>ok(null);f.readAsDataURL(b);});}catch(_){return null;}};
 const XPART=[
  {name:"Hưng Phú Home",field:"Gạch ốp lát · Thiết bị vệ sinh cao cấp",logo:"https://hungphuhome.com.vn/storage/tenanthungphucantho/hungphuhome-logo-s.png",link:"https://hungphuhome.com.vn"},
  {name:"Rita Võ",field:"Thiết bị vệ sinh Kohler",logo:"https://cdn.prod.website-files.com/669e19e0d41779e7fceae2a2/6725a45bdecf325d8cef3744_logo-01.png",link:"https://ritavo.com"},
@@ -752,19 +760,21 @@ const XROOMS=["Phòng khách","Phòng bếp","Phòng ăn","Phòng ngủ master",
 function xWd(s){if(!s)return null;const a=dms(s),b=dms(tdy());if(isNaN(a)||a>b)return 0;let n=0;for(let t=a;t<=b;t+=864e5)if(new Date(t).getUTCDay()!==0)n++;return n;}
 function xDec(d){
   const PL=d.plan||{items:[]},out=[],t0=dms(tdy());
-  (d.decisions||[]).filter(x=>!/đã chốt/i.test(x.status||"")).forEach(x=>out.push({title:x.title,reason:x.reason||"",need_by:x.need_by?String(x.need_by).slice(0,10):"",grp:x.grp||""}));
-  (d.progress||[]).filter(p=>p.status==="Chờ anh/chị phản hồi").forEach(p=>out.push({title:"Phản hồi: "+p.item,reason:"Đội ngũ đang chờ anh/chị phản hồi để tiếp tục hạng mục này.",need_by:p.due_date?String(p.due_date).slice(0,10):"",grp:"Thiết kế"}));
+  const have={};(d.decisions||[]).forEach(x=>{have[x.title]=1;});
+  (d.decisions||[]).filter(x=>!/đã chốt/i.test(x.status||"")).forEach(x=>out.push({id:x.id,title:x.title,reason:x.reason||"",need_by:x.need_by?String(x.need_by).slice(0,10):"",grp:x.grp||""}));
+  (d.progress||[]).filter(p=>p.status==="Chờ anh/chị phản hồi"&&!have["Phản hồi: "+p.item]).forEach(p=>out.push({title:"Phản hồi: "+p.item,reason:"Đội ngũ đang chờ anh/chị phản hồi để tiếp tục hạng mục này.",need_by:p.due_date?String(p.due_date).slice(0,10):"",grp:"Thiết kế"}));
   const seen={};
   (PL.items||[]).filter(x=>!x.agg&&x.status!=="Hoàn thành"&&x.start_date).forEach(x=>{
     const s=dms(x.start_date);if(isNaN(s)||s<t0||s-t0>45*864e5)return;
     const n=_n((x.content||"")+" "+(x.phase||""));if(/ban giao/.test(_n(x.phase||"")))return;
     const r=XRULES.find(q=>q[0].test(n));if(!r)return;
-    const k=r[1];if(seen[k]&&seen[k].need_by<=x.start_date)return;
+    const k=r[1];if(have[k])return;if(seen[k]&&seen[k].need_by<=x.start_date)return;
     seen[k]={title:k,reason:"Theo kế hoạch thi công, hạng mục «"+x.content+"» bắt đầu ngày "+fmt(x.start_date)+".",need_by:x.start_date,grp:"Vật liệu"};});
   Object.keys(seen).forEach(k=>out.push(seen[k]));
   return out.sort((a,b)=>(a.need_by||"9").localeCompare(b.need_by||"9"));
 }
 function xRender(d){
+  if(!d._x)xLoad(d);
   const PL=d.plan||{items:[]},meta=d.meta||{},docs=d.docs||[];
   /* moc du an */
   const ds=meta.design_start?String(meta.design_start).slice(0,10):"";
@@ -803,14 +813,16 @@ function xRender(d){
 }
 let XDL=[],XML=[],XN=[],XE={id:"",imgs:[]},XAK=null;
 function xMatList(d){
-  if(d.materials&&d.materials.length)return d.materials.map(m=>({id:"m"+m.id,name:m.name,room:m.room||"",brand:m.brand||"",spec:m.spec||"",img:m.image_url||m.link_url||""}));
+  if(d.materials&&d.materials.length)return d.materials.map(m=>({id:"m"+m.id,name:m.name,room:m.room||"",brand:m.brand||"",spec:m.spec||"",img:m.image_url||m.link_url||"",srv:m.id,st:m.status==="Duyệt"?"ok":m.status==="Cần chỉnh"?"chg":""}));
   return (d.docs||[]).filter(isMat).map(x=>({id:"d"+x.id,name:x.title,room:"",brand:"",spec:"",img:x.url||"",locked:!x.url}));
 }
 function xMats(d){
-  XML=xMatList(d);XN=xls(xk("vn"),[]);
+  XML=xMatList(d);
+  const sv=(d.snotes||[]).map(n=>({id:n.id,room:n.room||"",title:n.title||"",note:n.note||"",imgs:(n.images||[]).map(i=>i.url).filter(Boolean),pm:Object.fromEntries((n.images||[]).filter(i=>i.url).map(i=>[i.url,i.p])),t:xVN(n.updated_at),sent:n.sent_at?xVN(n.sent_at):"",srv:1}));
+  XN=sv.concat(xls(xk("vn"),[]).filter(x=>!x.srv));
   const mv=xls(xk("mv"),{});
   let h="<h2>Duyệt vật liệu &amp; sản phẩm</h2><div class=\"muted\">Đội ngũ thiết kế đề xuất sản phẩm, vật liệu mẫu để anh/chị xem, duyệt hoặc góp ý.</div>";
-  h+=XML.length?XML.map((m,i)=>{const s=mv[m.id]&&mv[m.id].s;
+  h+=XML.length?XML.map((m,i)=>{const s=m.st||(mv[m.id]&&mv[m.id].s);
     const tg=s==="ok"?'<span class="tag ok">Đã duyệt</span>':s==="chg"?'<span class="tag warn">Đã gửi góp ý</span>':m.locked?'<span class="tag warn">Đang cấp quyền xem</span>':'<span class="tag">Chờ anh/chị duyệt</span>';
     const im=m.img&&!m.locked?'<img loading="lazy" alt="" src="'+esc(thumb({url:m.img}))+'" data-lb="'+esc(full({url:m.img}))+'">':'<div class="ph">Chưa có hình</div>';
     return '<div class="mt">'+im+'<div class="mb"><div style="font-weight:600">'+esc(m.name)+'</div><div class="mini">'+esc([m.room,m.brand,m.spec].filter(Boolean).join(" · "))+'</div><div style="margin-top:4px">'+tg+'</div><div class="act"><button class="btn" data-mv="ok" data-i="'+i+'">Duyệt</button><button class="btn ghost" data-mv="chg" data-i="'+i+'">Cần chỉnh</button><button class="btn ghost" data-mv="ask" data-i="'+i+'">Hỏi tư vấn</button></div></div></div>';}).join("")
@@ -820,7 +832,7 @@ function xMats(d){
      +(n.imgs&&n.imgs.length?'<div class="im">'+n.imgs.map(u=>'<img alt="" src="'+u+'" data-lb="'+u+'">').join("")+"</div>":"")
      +'<div class="mini">Lưu lúc '+esc(String(n.t||"").slice(0,16))+(n.sent?" · đã gửi tư vấn "+esc(String(n.sent).slice(5,16)):"")+'</div><div class="act"><button class="btn" data-nx="send" data-id="'+n.id+'">Gửi tư vấn</button><button class="btn ghost" data-nx="edit" data-id="'+n.id+'">Sửa</button><button class="btn ghost" data-nx="del" data-id="'+n.id+'">Xoá</button></div></div>').join("")
     :'<div class="empty" style="padding:14px 8px">Chưa có ghi chú. Anh/chị có thể thêm hình mẫu, màu sắc, thương hiệu mình thích cho từng phòng.</div>';
-  h+='<div class="sub">Ghi chú và hình được lưu trên thiết bị này. Bấm “Gửi tư vấn” để đội ngũ Kiến Huỳnh nhận được nội dung và hình trong Nhóm dự án.</div>';
+  h+='<div class="sub">Ghi chú và hình được lưu trên tài khoản của anh/chị, xem được trên mọi thiết bị. Bấm “Gửi tư vấn” để đội ngũ Kiến Huỳnh nhận được nội dung và hình trong Nhóm dự án.</div>';
   $("#matc").innerHTML=h;
 }
 /* gui sang tab Tu van (nhom du an), kem tep neu co */
@@ -837,7 +849,7 @@ function xShr(f,mx,q){return new Promise(ok=>{const rd=new FileReader();rd.onerr
   const k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",q));};im.src=rd.result;};rd.readAsDataURL(f);});}
 function xTray(){const t=$("#mt-tray");if(t)t.innerHTML=XE.imgs.map((u,i)=>'<div class="tt"><img alt="" src="'+u+'"><a data-xi="'+i+'">×</a></div>').join("");}
 function xEdit(id){
-  const n=id?XN.find(x=>x.id===id):null;XE={id:n?n.id:"",imgs:n&&n.imgs?n.imgs.slice():[]};
+  const n=id?XN.find(x=>x.id===id):null;XE={id:n?n.id:"",imgs:n&&n.imgs?n.imgs.slice():[],pm:n&&n.pm?n.pm:{},srv:!!(n&&n.srv)};
   $("#dmt").textContent=n?"Sửa ghi chú vật liệu":"Thêm ghi chú vật liệu";
   $("#dmc").innerHTML='<label>Khu vực / phòng</label><input id="mt-r" list="mt-rl" maxlength="60" placeholder="Ví dụ: Phòng ngủ master" value="'+esc(n?n.room:"")+'"><datalist id="mt-rl">'+XROOMS.map(r=>'<option value="'+r+'">').join("")+'</datalist>'
    +'<label>Vật liệu / sản phẩm</label><input id="mt-t" maxlength="80" placeholder="Ví dụ: Sàn gỗ, gạch ốp tường, đèn…" value="'+esc(n?n.title:"")+'">'
@@ -852,33 +864,48 @@ document.addEventListener("click",async e=>{
   const go=T.closest("[data-go]");if(go&&go.dataset.go==="mat"){const t=document.querySelector('#tabs [data-t="design"]');t&&t.click();setTimeout(()=>{const m=$("#matc");m&&m.scrollIntoView({behavior:"smooth",block:"start"});},60);return;}
   const dc=T.closest("[data-dc]");if(dc){const n=XDL[Number(dc.dataset.i)];if(!n)return;
     if(dc.dataset.dc==="ok"){if(!confirm("Gửi xác nhận anh/chị đã chốt «"+n.title+"» cho đội ngũ?"))return;
-      if(await xAdvise("Xác nhận đã chốt: «"+n.title+"».",null,true)){const s=xls(xk("dc"),{});s[n.title]=1;xss(xk("dc"),s);xRender(D);}}
+      if(await xAdvise("Xác nhận đã chốt: «"+n.title+"».",null,true)){const s=xls(xk("dc"),{});s[n.title]=1;xss(xk("dc"),s);
+        const q=await callX({a:"x_dec",id:n.id,title:n.title,reason:n.reason,need_by:n.need_by,grp:n.grp,status:"Đã chốt"});
+        if(q&&q.ok){D.decisions=(D.decisions||[]).filter(x=>x.title!==n.title);D.decisions.push({id:q.id,title:n.title,status:"Đã chốt"});}
+        xRender(D);}}
     else xAdvise("Cần trao đổi thêm về: «"+n.title+"»"+(n.need_by?" (cần chốt trước "+fmt(n.need_by)+")":"")+".");
     return;}
   const mv=T.closest("[data-mv]");if(mv){const m=XML[Number(mv.dataset.i)];if(!m)return;const lab=m.name+(m.room?" ("+m.room+")":"");
-    const mark=s=>{const o=xls(xk("mv"),{});o[m.id]={s,t:nowVN()};xss(xk("mv"),o);xMats(D);};
+    const mark=(s,nt)=>{const o=xls(xk("mv"),{});o[m.id]={s,t:nowVN()};xss(xk("mv"),o);m.st=s;
+      if(m.srv)callX({a:"x_mat",id:m.srv,status:s==="ok"?"Duyệt":"Cần chỉnh",note:nt||""});xMats(D);};
     if(mv.dataset.mv==="ok"){if(!confirm("Gửi xác nhận anh/chị duyệt «"+lab+"» cho đội ngũ?"))return;if(await xAdvise("Duyệt vật liệu/sản phẩm: «"+lab+"».",null,true))mark("ok");}
-    else if(mv.dataset.mv==="chg")xAsk("Cần chỉnh: "+lab,"Anh/chị muốn chỉnh điều gì (màu, kích thước, thương hiệu…)?",async t=>{if(await xAdvise("Góp ý vật liệu/sản phẩm «"+lab+"»: "+t,null,true))mark("chg");});
+    else if(mv.dataset.mv==="chg")xAsk("Cần chỉnh: "+lab,"Anh/chị muốn chỉnh điều gì (màu, kích thước, thương hiệu…)?",async t=>{if(await xAdvise("Góp ý vật liệu/sản phẩm «"+lab+"»: "+t,null,true))mark("chg",t);});
     else xAdvise("Em muốn được tư vấn thêm về vật liệu/sản phẩm: «"+lab+"».");
     return;}
   const nx=T.closest("[data-nx]");if(nx){const a=nx.dataset.nx,id=nx.dataset.id;
     if(a==="add")xEdit("");
     else if(a==="edit")xEdit(id);
-    else if(a==="del"){if(confirm("Xoá ghi chú này khỏi thiết bị?")){XN=XN.filter(x=>x.id!==id);xss(xk("vn"),XN);xMats(D);}}
+    else if(a==="del"){if(confirm("Xoá ghi chú này?")){const o=XN.find(x=>x.id===id);
+      if(o&&o.srv){const q=await callX({a:"x_note_del",id});if(!q.ok){toast(q.msg||"Chưa xoá được");return;}D.snotes=(D.snotes||[]).filter(x=>x.id!==id);}
+      XN=XN.filter(x=>x.id!==id);xss(xk("vn"),XN.filter(x=>!x.srv));xMats(D);}}
     else if(a==="send"){const n=XN.find(x=>x.id===id);if(!n)return;nx.disabled=true;
-      const files=(n.imgs||[]).map((u,i)=>({b64:u.split(",")[1],mime:"image/jpeg",name:(n.title||"vat-lieu")+"-"+(i+1)+".jpg"}));
+      const files=[];for(const [i,u] of (n.imgs||[]).entries()){const b=await xB64(u);if(b)files.push({b64:b,mime:"image/jpeg",name:(n.title||"vat-lieu")+"-"+(i+1)+".jpg"});}
       const txt="Ghi chú vật liệu"+(n.room?" · "+n.room:"")+(n.title?" · "+n.title:"")+(n.note?"\n"+n.note:"");
       const ok=await xAdvise(txt,files);nx.disabled=false;
-      if(ok){n.sent=nowVN();xss(xk("vn"),XN);xMats(D);}}
+      if(ok){n.sent=nowVN();
+        if(n.srv){const q=await callX({a:"x_note",id:n.id,room:n.room,title:n.title,note:n.note,keep:Object.values(n.pm||{}),sent:1});if(q.ok){const k=(D.snotes||[]).findIndex(x=>x.id===n.id);if(k>=0)D.snotes[k]=q.note;}}
+        else xss(xk("vn"),XN.filter(x=>!x.srv));xMats(D);}}
     return;}
   const xi=T.closest("[data-xi]");if(xi){XE.imgs.splice(Number(xi.dataset.xi),1);xTray();return;}
   if(T.id==="mt-s"){
     const room=$("#mt-r").value.trim(),title=$("#mt-t").value.trim(),note=$("#mt-n").value.trim();
     if(!title&&!note&&!XE.imgs.length){toast("Anh/chị nhập nội dung hoặc thêm hình trước nhé");return;}
-    const old=XN.slice(),rec={id:XE.id||"n"+Date.now().toString(36),room,title,note,imgs:XE.imgs.slice(),t:nowVN()};
-    const i=XN.findIndex(x=>x.id===rec.id);if(i>=0){rec.sent=XN[i].sent;XN[i]=rec;}else XN.unshift(rec);
-    if(!xss(xk("vn"),XN)){XN=old;toast("Bộ nhớ thiết bị đã đầy, hãy xoá bớt ghi chú hoặc giảm số hình");return;}
-    $("#dm").classList.add("hide");xMats(D);toast("Đã lưu ghi chú");return;}
+    T.disabled=true;
+    const nw=XE.imgs.filter(u=>/^data:/.test(u)),keep=XE.imgs.filter(u=>XE.pm&&XE.pm[u]).map(u=>XE.pm[u]);
+    const q=await callX({a:"x_note",id:XE.srv?XE.id:undefined,room,title,note,keep,files:nw.map((u,i)=>({b64:u.split(",")[1],mime:"image/jpeg",name:(title||"vat-lieu")+"-"+(i+1)+".jpg"}))});
+    T.disabled=false;
+    if(q&&q.ok){D.snotes=(D.snotes||[]).filter(x=>x.id!==q.note.id);D.snotes.unshift(q.note);$("#dm").classList.add("hide");xMats(D);toast("Đã lưu ghi chú");return;}
+    if(q&&q.auth===false){toast(q.msg||"Phiên đã hết");return;}
+    /* may chu chua san sang: luu tam tren thiet bi */
+    const old=XN.slice(),rec={id:XE.id&&!XE.srv?XE.id:"n"+Date.now().toString(36),room,title,note,imgs:nw,t:nowVN()};
+    const i=XN.findIndex(x=>x.id===rec.id);if(i>=0){rec.sent=XN[i].sent;XN[i]=rec;}else XN.push(rec);
+    if(!xss(xk("vn"),XN.filter(x=>!x.srv))){XN=old;toast("Chưa lưu được: "+((q&&q.msg)||"bộ nhớ thiết bị đầy"));return;}
+    $("#dm").classList.add("hide");xMats(D);toast("Đã lưu tạm trên thiết bị này");return;}
   if(T.id==="ak-s"){const v=($("#ak-t").value||"").trim();if(!v){toast("Anh/chị nhập nội dung trước nhé");return;}const cb=XAK;XAK=null;$("#dm").classList.add("hide");cb&&cb(v);return;}
 });
 document.addEventListener("change",async e=>{if(e.target.id!=="mt-f")return;
