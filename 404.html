@@ -148,7 +148,7 @@ details.sm summary::after{content:" ▾"}
 main.wrap{padding-bottom:calc(var(--tb,62px) + 16px)}
 .cap{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.25}
 
-body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
+body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 #v-adv{display:flex;flex-direction:column;gap:8px}
 .cvtop{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:none}
 .cvb{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:11px 8px;font:inherit;color:var(--ink);text-align:center;cursor:pointer}
@@ -729,9 +729,12 @@ function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");c
 function setTb(){const t=document.querySelector(".tabs"),h=t?t.offsetHeight:0;if(h>0)document.documentElement.style.setProperty("--tb",h+"px");}
 window.addEventListener("resize",setTb);window.addEventListener("orientationchange",setTb);
 function fitChat(){const v=$("#v-adv");if(v.classList.contains("hide"))return;
-  const tb=document.querySelector(".tabs").offsetHeight,top=v.getBoundingClientRect().top+window.scrollY,vh=window.visualViewport?window.visualViewport.height:window.innerHeight;
-  v.style.height=Math.max(320,vh-top-tb-6)+"px";}
-window.addEventListener("resize",fitChat);if(window.visualViewport)window.visualViewport.addEventListener("resize",fitChat);
+  const vv=window.visualViewport,vh=vv?vv.height:window.innerHeight,off=vv?vv.offsetTop:0;
+  const kb=vv&&(window.innerHeight-vh>120);document.body.classList.toggle("kb",!!kb);
+  const tb=kb?0:document.querySelector(".tabs").offsetHeight,top=v.getBoundingClientRect().top-off;
+  v.style.height=Math.max(kb?160:320,vh-top-tb-6)+"px";}
+window.addEventListener("resize",fitChat);if(window.visualViewport){window.visualViewport.addEventListener("resize",fitChat);window.visualViewport.addEventListener("scroll",fitChat);}
+document.addEventListener("focusin",()=>{[0,150,400].forEach(t=>setTimeout(()=>{fitChat();window.scrollTo(0,0);},t));});document.addEventListener("focusout",()=>{[0,150,400].forEach(t=>setTimeout(fitChat,t));});
 $("#v-adv").addEventListener("click",e=>{const b=e.target.closest(".cvb");if(!b)return;
   document.querySelectorAll(".cvb").forEach(x=>x.classList.toggle("on",x===b));
   $("#pg").classList.toggle("hide",b.dataset.c!=="g");$("#pb").classList.toggle("hide",b.dataset.c!=="b");
