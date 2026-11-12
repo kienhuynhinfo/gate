@@ -200,6 +200,30 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 .tray a{position:absolute;top:1px;right:3px;color:#fff;background:rgba(0,0,0,.55);border-radius:50%;width:16px;height:16px;line-height:16px;font-size:11px;text-align:center;cursor:pointer}
 .msg .im{display:block;max-width:100%;width:220px;border-radius:10px;margin-top:6px;cursor:pointer;background:var(--brand-l);min-height:60px}
 .msg .fl{display:inline-block;margin-top:6px;padding:6px 10px;border-radius:10px;background:rgba(127,127,127,.15);font-size:13px;cursor:pointer}
+/* Tong quan: moc du an, can chot som, doi tac; Thiet ke: duyet vat lieu */
+.stg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.st{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);min-width:0}
+.st span{display:block;font-size:12px;color:var(--muted)}
+.st b{display:block;font-size:16px;margin-top:2px;color:var(--brand-d);line-height:1.25;word-break:break-word}
+.st small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+.dec{padding:12px 0;border-top:1px solid var(--line)}.dec:first-of-type{border-top:0}
+.dec .n{font-weight:600}.dec .r{font-size:13px;color:var(--muted);margin-top:2px}
+.act{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.act .btn{padding:7px 12px;font-size:13px}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.pt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1px solid var(--line);border-radius:12px;background:var(--card);text-decoration:none;color:var(--ink);text-align:center;min-width:0}
+.pt .lg{width:100%;height:48px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:8px;overflow:hidden;padding:4px}
+.pt .lg img{max-width:100%;max-height:100%;object-fit:contain}
+.pt .lg em{font-style:normal;font-weight:700;color:#9A3412;font-size:17px}
+.pt b{font-size:12.5px;line-height:1.2}.pt small{font-size:10.5px;color:var(--muted);line-height:1.25}
+.pt.off{opacity:.75}
+.mt{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}.mt:first-of-type{border-top:0}
+.mt>img,.mt>.ph{width:84px;height:84px;aspect-ratio:auto;object-fit:cover;border-radius:10px;background:var(--brand-l);cursor:pointer;flex:none}
+.mt .mb{flex:1;min-width:0}
+.nb{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;background:var(--bg)}
+.nb .im{display:flex;gap:6px;overflow-x:auto;margin-top:6px}
+.nb .im img{width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;flex:none}
+.sech{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:18px}.sech b{font-size:14px}
 </style>
 </head>
 <body>
@@ -241,12 +265,15 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
   <main class="wrap">
     <div id="v-home">
       <div class="card" id="hc"></div>
+      <div class="card" id="kmc"></div>
+      <div class="card" id="dcc"></div>
       <div class="card"><h2>Thông tin dự án</h2><div id="info"></div></div>
       <div class="card"><h2>Việc sắp tới</h2><div id="next"></div></div>
       <div class="card"><h2>Tiến độ chung</h2><div id="ov"></div></div>
       <div class="card"><h2>Nhân sự phụ trách</h2><div class="staff" id="staffH"></div></div>
+      <div class="card" id="ptc"></div>
     </div>
-    <div id="v-design" class="hide"><div class="card" id="dsum"></div><div class="card"><h2>Hình ảnh phối cảnh</h2><div id="rdr"></div></div><div id="dlist"></div></div>
+    <div id="v-design" class="hide"><div class="card" id="dsum"></div><div class="card"><h2>Hình ảnh phối cảnh</h2><div id="rdr"></div></div><div class="card" id="matc"></div><div id="dlist"></div></div>
     <div id="v-build" class="hide">
       <div class="card" id="bsum"></div>
       <div class="card" id="bplan"></div>
@@ -288,7 +315,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
         <div id="cg"></div>
       </div>
       <div class="card chatcard hide" id="pb">
-        <div class="bpt"><button class="btn ghost" data-a="lib">Thư viện mẫu</button><button class="btn ghost" data-a="sug">Đề xuất</button><button class="btn ghost" data-a="how">Tư vấn TK – TC</button></div>
+        <div class="bpt"><button class="btn ghost" data-a="lib">Thư viện mẫu</button><button class="btn ghost" data-a="sug">Đề xuất</button><button class="btn ghost" data-a="how">Tư vấn TK – TC</button><button class="btn ghost" data-go="mat">Vật liệu</button></div>
         <div id="advbody"></div>
         <div id="cb"></div>
         <button class="btn full" id="fwall">Chuyển cuộc trao đổi sang nhóm dự án</button>
@@ -431,14 +458,15 @@ function render(d){
   const kinds={};(d.docs||[]).forEach(x=>(kinds[x.kind]=kinds[x.kind]||[]).push(x));
   const ord=["Hồ sơ thiết kế","Tiến độ","Nhật ký thi công","Biên bản họp"];const ks=Object.keys(kinds).sort((a,b)=>{const x=ord.indexOf(a),y=ord.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
   renderDocs(d.docs||[]);
-  {const ks2=ks.filter(k=>k!=="Hồ sơ thiết kế"&&kinds[k].some(x=>!isRender(x)&&!isDt(x)));
-   $("#dc").innerHTML=ks2.map(k=>'<div class="card"><h2>'+esc(k)+"</h2>"+kinds[k].filter(x=>!isRender(x)&&!isDt(x)).map(docRow).join("")+"</div>").join("");}
+  {const ks2=ks.filter(k=>k!=="Hồ sơ thiết kế"&&kinds[k].some(x=>!isRender(x)&&!isDt(x)&&!isMat(x)));
+   $("#dc").innerHTML=ks2.map(k=>'<div class="card"><h2>'+esc(k)+"</h2>"+kinds[k].filter(x=>!isRender(x)&&!isDt(x)&&!isMat(x)).map(docRow).join("")+"</div>").join("");}
   // ca nhan
   const pf=d.profile||{};$("#pf-n").value=pf.name||"";$("#pf-e").value=pf.email||me;$("#pf-p").value=pf.phone||"";$("#pf-a").value=pf.address||"";$("#pf-t").value=pf.note_kh||"";
   // chat
   boxes=[];ATT=!!(d.caps&&d.caps.indexOf("att")>=0);
   ChatBox($("#cg"),"g",d.chatG,"Nhắn cho nhóm dự án… (gõ @bot)");
   ChatBox($("#cb"),"b",d.chatB,"Hỏi riêng trợ lý…");
+  try{xRender(d);}catch(e){console.error("xRender",e);}
 }
 const gid=u=>{const m=String(u||"").match(/[-\w]{25,}/);return m?m[0]:"";};
 const thumb=p=>p.thumb||(p.id||gid(p.url)?"https://drive.google.com/thumbnail?id="+(p.id||gid(p.url))+"&sz=w600":p.url);
@@ -520,7 +548,7 @@ const pvUrl=u=>{u=String(u||"");if(/drive\.google\.com\/drive\/folders\//.test(u
 let DOCS=[];
 function renderDocs(docs){
   DOCS=docs;
-  const dd=docs.filter(x=>!isDt(x)&&!isRender(x)&&/thiết kế|hồ sơ/i.test(x.kind||"")||(!isRender(x)&&docBm(x)>=0));
+  const dd=docs.filter(x=>!isMat(x)&&(!isDt(x)&&!isRender(x)&&/thiết kế|hồ sơ/i.test(x.kind||"")||(!isRender(x)&&docBm(x)>=0)));
   const cnt=[0,0,0,0,0];dd.forEach(x=>{const b=docBm(x);cnt[b<0?4:b]++;});
   const names=BM.concat(["Hồ sơ khác"]);
   $("#bmb").innerHTML=names.map((n,i)=>i===4&&!cnt[4]?"":'<button data-bm="'+i+'">'+esc(n)+"<small>"+(cnt[i]?cnt[i]+" tài liệu":"Chưa có")+"</small></button>").join("");
@@ -540,7 +568,7 @@ $("#rvs").onclick=async()=>{const v=$("#rvm").value.trim();if(!v){toast("Anh/ch�
 $("#rvok").onclick=async()=>{await toGroup("Đồng ý hình phối cảnh «"+RV[RI].title+"».");};
 document.addEventListener("click",e=>{const g=e.target.closest("[data-rv]");if(g)showRv(Number(g.dataset.rv));});
 function openBm(i){
-  const list=DOCS.filter(x=>!isRender(x)&&!isDt(x)&&((i===4?docBm(x)<0&&/thiết kế|hồ sơ/i.test(x.kind||""):docBm(x)===i)));
+  const list=DOCS.filter(x=>!isRender(x)&&!isDt(x)&&!isMat(x)&&((i===4?docBm(x)<0&&/thiết kế|hồ sơ/i.test(x.kind||""):docBm(x)===i)));
   $("#dmt").textContent="Hồ sơ "+(i===4?"khác":BM[i]);
   $("#dmc").innerHTML=list.length?list.map(docRow).join(""):'<div class="empty">Hồ sơ bộ môn này chưa được đăng. Khi hồ sơ được chốt, Kiến Huỳnh sẽ cập nhật tại đây.</div>';
   $("#dm").classList.remove("hide");}
@@ -698,6 +726,165 @@ $("#pb").addEventListener("click",e=>{
   if(e.target.id==="fwall"){const L=Array.from(document.querySelectorAll("#cb .msg")).slice(-10).map(m=>m.dataset.who+": "+m.dataset.txt);
     if(!L.length){toast("Chưa có nội dung để chuyển");return;}
     let t="Chuyển từ cuộc trao đổi với trợ lý:\n"+L.join("\n");if(t.length>1900)t="Chuyển từ cuộc trao đổi với trợ lý:\n…"+t.slice(-1850);toGroup(t);}});
+/* ===== Tong quan: moc du an, viec can chot som, doi tac | Thiet ke: duyet vat lieu ===== */
+const xls=(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(_){return def;}};
+const xss=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
+const xk=p=>"kh_"+p+"_"+CODE+SLUG;
+const isMat=x=>/vat lieu|san pham|bang mau/.test(_n((x.kind||"")+" "+(x.title||"")))&&!isRender(x)&&!isDt(x);
+const XPART=[
+ {name:"Hưng Phú Home",field:"Gạch ốp lát · Thiết bị vệ sinh cao cấp",logo:"https://hungphuhome.com.vn/storage/tenanthungphucantho/hungphuhome-logo-s.png",link:"https://hungphuhome.com.vn"},
+ {name:"Rita Võ",field:"Thiết bị vệ sinh Kohler",logo:"https://cdn.prod.website-files.com/669e19e0d41779e7fceae2a2/6725a45bdecf325d8cef3744_logo-01.png",link:"https://ritavo.com"},
+ {name:"TDL Smart Home",field:"Nhà thông minh Lumi",logo:"https://tdlviet.com/wp-content/uploads/2024/03/7a38eb69ab1f04415d0e.jpg",link:"https://tdlviet.com"},
+ {name:"Đại Quân",field:"Nhà cung cấp",logo:"",link:""},
+ {name:"Tadobe",field:"Thang máy",logo:"https://thangmaytadobe.com/images/logo-thang-may-tadobe.png?t=1",link:"https://thangmaytadobe.com"},
+ {name:"An Cường",field:"Gỗ công nghiệp",logo:"https://ancuong.com/pictures/files/ancuong-logo.jpg",link:"https://ancuong.com"}
+];
+const XRULES=[
+ [/\bwc\b|thiet bi ve sinh/,"Chốt thiết bị vệ sinh và gạch ốp tường WC"],
+ [/op lat|gach/,"Chốt gạch ốp lát"],
+ [/op da/,"Chốt đá ốp cầu thang"],
+ [/\bson\b/,"Chốt màu sơn tường trong, tường ngoài và trần"],
+ [/\bcua\b|lan can|tay vin|mai che/,"Chốt mẫu cửa, lan can, tay vịn và mái che"],
+ [/dien|chieu sang|cong tac|o cam|\bden\b/,"Chốt vị trí điện, công tắc và đèn"]
+];
+const XROOMS=["Phòng khách","Phòng bếp","Phòng ăn","Phòng ngủ master","Phòng ngủ phụ","Phòng ông bà","Nhà vệ sinh","Cầu thang","Mặt tiền","Sân trước","Sân sau","Ban công"];
+/* so ngay lam viec: thu 2 den thu 7, tu ngay bat dau den hom nay */
+function xWd(s){if(!s)return null;const a=dms(s),b=dms(tdy());if(isNaN(a)||a>b)return 0;let n=0;for(let t=a;t<=b;t+=864e5)if(new Date(t).getUTCDay()!==0)n++;return n;}
+function xDec(d){
+  const PL=d.plan||{items:[]},out=[],t0=dms(tdy());
+  (d.decisions||[]).filter(x=>!/đã chốt/i.test(x.status||"")).forEach(x=>out.push({title:x.title,reason:x.reason||"",need_by:x.need_by?String(x.need_by).slice(0,10):"",grp:x.grp||""}));
+  (d.progress||[]).filter(p=>p.status==="Chờ anh/chị phản hồi").forEach(p=>out.push({title:"Phản hồi: "+p.item,reason:"Đội ngũ đang chờ anh/chị phản hồi để tiếp tục hạng mục này.",need_by:p.due_date?String(p.due_date).slice(0,10):"",grp:"Thiết kế"}));
+  const seen={};
+  (PL.items||[]).filter(x=>!x.agg&&x.status!=="Hoàn thành"&&x.start_date).forEach(x=>{
+    const s=dms(x.start_date);if(isNaN(s)||s<t0||s-t0>45*864e5)return;
+    const n=_n((x.content||"")+" "+(x.phase||""));if(/ban giao/.test(_n(x.phase||"")))return;
+    const r=XRULES.find(q=>q[0].test(n));if(!r)return;
+    const k=r[1];if(seen[k]&&seen[k].need_by<=x.start_date)return;
+    seen[k]={title:k,reason:"Theo kế hoạch thi công, hạng mục «"+x.content+"» bắt đầu ngày "+fmt(x.start_date)+".",need_by:x.start_date,grp:"Vật liệu"};});
+  Object.keys(seen).forEach(k=>out.push(seen[k]));
+  return out.sort((a,b)=>(a.need_by||"9").localeCompare(b.need_by||"9"));
+}
+function xRender(d){
+  const PL=d.plan||{items:[]},meta=d.meta||{},docs=d.docs||[];
+  /* moc du an */
+  const ds=meta.design_start?String(meta.design_start).slice(0,10):"";
+  const bsMeta=meta.build_start?String(meta.build_start).slice(0,10):"",bs=bsMeta||(PL.total&&PL.total.start_date)||"";
+  const wdD=xWd(ds),wdB=xWd(bs);
+  const nMom=docs.filter(x=>/bien ban|\bmom\b/.test(_n((x.kind||"")+" "+(x.title||"")))).length;
+  const pd=docs.find(x=>/giay phep/.test(_n((x.kind||"")+" "+(x.title||""))));
+  const pno=meta.permit_no||(pd?pd.title:""),pex=meta.permit_expiry?String(meta.permit_expiry).slice(0,10):"";
+  let pex2="";if(pex){const l=Math.round((dms(pex)-dms(tdy()))/864e5);pex2="Thời hạn: "+fmt(pex)+(l<0?" (đã hết hạn)":" (còn "+l+" ngày)");}
+  const tile=(k,v,s)=>'<div class="st"><span>'+esc(k)+"</span><b>"+esc(v)+"</b>"+(s?"<small>"+esc(s)+"</small>":"")+"</div>";
+  $("#kmc").innerHTML="<h2>Mốc dự án</h2><div class=\"stg\">"
+   +tile("Bắt đầu thiết kế",ds?fmt(ds):"Đang cập nhật",ds?(wdD>0?wdD+" ngày làm việc":"Chưa bắt đầu"):"")
+   +tile("Bắt đầu thi công",bs?fmt(bs):"Chưa có kế hoạch",bs?(wdB>0?wdB+" ngày làm việc":"Chưa bắt đầu")+(bsMeta?"":" · theo kế hoạch"):"")
+   +tile("Số cuộc họp",nMom?nMom+" cuộc họp":"Chưa có biên bản",nMom?"Theo biên bản MOM":"Sẽ cập nhật khi có biên bản")
+   +tile("Giấy phép xây dựng",pno||"Đang cập nhật",pex2)
+   +"</div><div class=\"sub\">Ngày làm việc tính từ thứ 2 đến thứ 7, từ ngày bắt đầu đến hôm nay.</div>";
+  /* viec can chot som */
+  const L=xDec(d),st=xls(xk("dc"),{});
+  $("#dcc").innerHTML="<h2>Việc cần chốt sớm</h2><div class=\"muted\">Các hạng mục cần anh/chị quyết định sớm để kịp tiến độ thiết kế và thi công.</div>"
+   +(L.length?L.map((n,i)=>{const left=n.need_by?Math.round((dms(n.need_by)-dms(tdy()))/864e5):null;
+     const tg=left==null?"":left<0?'<span class="tag late">Quá hạn '+(-left)+" ngày</span>":left<=7?'<span class="tag warn">Còn '+left+" ngày</span>":'<span class="tag">Còn '+left+" ngày</span>";
+     const sent=st[n.title];
+     return '<div class="dec"><div class="n">'+esc(n.title)+'</div><div class="r">'+esc(n.reason)+"</div><div class=\"act\">"+tg+(n.need_by?"<span class=\"muted\">Cần chốt trước "+fmt(n.need_by)+"</span>":"")+"</div>"
+      +'<div class="act">'+(sent?'<span class="tag ok">Đã báo đội ngũ</span>':'<button class="btn" data-dc="ok" data-i="'+i+'">Đã chốt</button>')+'<button class="btn ghost" data-dc="ask" data-i="'+i+'">Trao đổi</button></div></div>';}).join("")
+    :'<div class="empty" style="padding:18px 8px">Hiện chưa có hạng mục nào cần chốt sớm.</div>')
+   +(L.length?'<div class="sub">Danh mục được lập theo kế hoạch thiết kế và thi công, cập nhật tự động khi tiến độ thay đổi.</div>':"");
+  XDL=L;
+  /* doi tac */
+  const P=(d.partners&&d.partners.length)?d.partners.map(p=>({name:p.name,field:p.field,logo:p.logo_url,link:p.link_url})):XPART;
+  $("#ptc").innerHTML="<h2>Đối tác &amp; nhà cung cấp</h2><div class=\"muted\">Những đơn vị đồng hành cùng Kiến Huỳnh. Chạm vào để xem trang của đối tác.</div><div class=\"pg\">"
+   +P.map(p=>{const ini=esc(String(p.name||"").split(/\s+/).map(w=>w[0]).join("").slice(0,3).toUpperCase());
+     const lg='<div class="lg">'+(p.logo?'<img loading="lazy" referrerpolicy="no-referrer" alt="'+esc(p.name)+'" data-ini="'+ini+'" src="'+esc(p.logo)+'">':"<em>"+ini+"</em>")+"</div>";
+     const body=lg+"<b>"+esc(p.name)+"</b><small>"+esc(p.field||"")+"</small>";
+     return p.link?'<a class="pt" href="'+esc(p.link)+'" target="_blank" rel="noopener">'+body+"</a>":'<div class="pt off">'+body+"</div>";}).join("")+"</div>";
+  xMats(d);
+}
+let XDL=[],XML=[],XN=[],XE={id:"",imgs:[]},XAK=null;
+function xMatList(d){
+  if(d.materials&&d.materials.length)return d.materials.map(m=>({id:"m"+m.id,name:m.name,room:m.room||"",brand:m.brand||"",spec:m.spec||"",img:m.image_url||m.link_url||""}));
+  return (d.docs||[]).filter(isMat).map(x=>({id:"d"+x.id,name:x.title,room:"",brand:"",spec:"",img:x.url||"",locked:!x.url}));
+}
+function xMats(d){
+  XML=xMatList(d);XN=xls(xk("vn"),[]);
+  const mv=xls(xk("mv"),{});
+  let h="<h2>Duyệt vật liệu &amp; sản phẩm</h2><div class=\"muted\">Đội ngũ thiết kế đề xuất sản phẩm, vật liệu mẫu để anh/chị xem, duyệt hoặc góp ý.</div>";
+  h+=XML.length?XML.map((m,i)=>{const s=mv[m.id]&&mv[m.id].s;
+    const tg=s==="ok"?'<span class="tag ok">Đã duyệt</span>':s==="chg"?'<span class="tag warn">Đã gửi góp ý</span>':m.locked?'<span class="tag warn">Đang cấp quyền xem</span>':'<span class="tag">Chờ anh/chị duyệt</span>';
+    const im=m.img&&!m.locked?'<img loading="lazy" alt="" src="'+esc(thumb({url:m.img}))+'" data-lb="'+esc(full({url:m.img}))+'">':'<div class="ph">Chưa có hình</div>';
+    return '<div class="mt">'+im+'<div class="mb"><div style="font-weight:600">'+esc(m.name)+'</div><div class="mini">'+esc([m.room,m.brand,m.spec].filter(Boolean).join(" · "))+'</div><div style="margin-top:4px">'+tg+'</div><div class="act"><button class="btn" data-mv="ok" data-i="'+i+'">Duyệt</button><button class="btn ghost" data-mv="chg" data-i="'+i+'">Cần chỉnh</button><button class="btn ghost" data-mv="ask" data-i="'+i+'">Hỏi tư vấn</button></div></div></div>';}).join("")
+   :'<div class="empty" style="padding:18px 8px">Danh mục đề xuất sẽ được cập nhật tại đây khi đội ngũ thiết kế gửi mẫu. Trong lúc chờ, anh/chị có thể ghi chú vật liệu mình thích ở bên dưới.</div>';
+  h+='<div class="sech"><b>Ghi chú vật liệu của anh/chị</b><button class="btn ghost" style="padding:7px 12px;font-size:13px" data-nx="add">+ Thêm ghi chú</button></div>';
+  h+=XN.length?XN.map(n=>'<div class="nb"><div style="font-weight:600">'+esc([n.room,n.title].filter(Boolean).join(" · ")||"Ghi chú")+"</div>"+(n.note?'<div style="font-size:14px;margin-top:2px;white-space:pre-wrap">'+esc(n.note)+"</div>":"")
+     +(n.imgs&&n.imgs.length?'<div class="im">'+n.imgs.map(u=>'<img alt="" src="'+u+'" data-lb="'+u+'">').join("")+"</div>":"")
+     +'<div class="mini">Lưu lúc '+esc(String(n.t||"").slice(0,16))+(n.sent?" · đã gửi tư vấn "+esc(String(n.sent).slice(5,16)):"")+'</div><div class="act"><button class="btn" data-nx="send" data-id="'+n.id+'">Gửi tư vấn</button><button class="btn ghost" data-nx="edit" data-id="'+n.id+'">Sửa</button><button class="btn ghost" data-nx="del" data-id="'+n.id+'">Xoá</button></div></div>').join("")
+    :'<div class="empty" style="padding:14px 8px">Chưa có ghi chú. Anh/chị có thể thêm hình mẫu, màu sắc, thương hiệu mình thích cho từng phòng.</div>';
+  h+='<div class="sub">Ghi chú và hình được lưu trên thiết bị này. Bấm “Gửi tư vấn” để đội ngũ Kiến Huỳnh nhận được nội dung và hình trong Nhóm dự án.</div>';
+  $("#matc").innerHTML=h;
+}
+/* gui sang tab Tu van (nhom du an), kem tep neu co */
+async function xAdvise(text,files,stay){
+  const r=await call({a:"send",ch:"g",text:String(text).slice(0,1900),files:files&&files.length?files:undefined});
+  if(!r.ok){toast(r.msg||"Chưa gửi được, thử lại sau");return false;}
+  boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));
+  if(stay){toast("Đã báo đội ngũ");return true;}
+  const t=document.querySelector('#tabs [data-t="adv"]');t&&t.click();
+  const g=document.querySelector('.cvb[data-c="g"]');g&&g.click();
+  toast("Đã gửi sang Tư vấn");return true;
+}
+function xShr(f,mx,q){return new Promise(ok=>{const rd=new FileReader();rd.onerror=()=>ok(null);rd.onload=()=>{const im=new Image();im.onerror=()=>ok(null);im.onload=()=>{
+  const k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",q));};im.src=rd.result;};rd.readAsDataURL(f);});}
+function xTray(){const t=$("#mt-tray");if(t)t.innerHTML=XE.imgs.map((u,i)=>'<div class="tt"><img alt="" src="'+u+'"><a data-xi="'+i+'">×</a></div>').join("");}
+function xEdit(id){
+  const n=id?XN.find(x=>x.id===id):null;XE={id:n?n.id:"",imgs:n&&n.imgs?n.imgs.slice():[]};
+  $("#dmt").textContent=n?"Sửa ghi chú vật liệu":"Thêm ghi chú vật liệu";
+  $("#dmc").innerHTML='<label>Khu vực / phòng</label><input id="mt-r" list="mt-rl" maxlength="60" placeholder="Ví dụ: Phòng ngủ master" value="'+esc(n?n.room:"")+'"><datalist id="mt-rl">'+XROOMS.map(r=>'<option value="'+r+'">').join("")+'</datalist>'
+   +'<label>Vật liệu / sản phẩm</label><input id="mt-t" maxlength="80" placeholder="Ví dụ: Sàn gỗ, gạch ốp tường, đèn…" value="'+esc(n?n.title:"")+'">'
+   +'<label>Ghi chú</label><textarea id="mt-n" maxlength="800" placeholder="Màu sắc, kích thước, thương hiệu, đường dẫn tham khảo…">'+esc(n?n.note:"")+'</textarea>'
+   +'<label>Hình tham khảo (tối đa 4)</label><input id="mt-f" type="file" accept="image/*" multiple><div class="tray" id="mt-tray"></div>'
+   +'<button class="btn full" id="mt-s">Lưu ghi chú</button>';
+  xTray();$("#dm").classList.remove("hide");}
+function xAsk(title,ph,cb){XAK=cb;$("#dmt").textContent=title;$("#dmc").innerHTML='<textarea id="ak-t" maxlength="800" placeholder="'+esc(ph)+'" style="min-height:110px"></textarea><button class="btn full" id="ak-s">Gửi cho đội ngũ</button>';$("#dm").classList.remove("hide");}
+document.addEventListener("click",async e=>{
+  const T=e.target;
+  const lb=T.closest("[data-lb]");if(lb){$("#lb img").src=lb.dataset.lb;$("#lb").classList.remove("hide");return;}
+  const go=T.closest("[data-go]");if(go&&go.dataset.go==="mat"){const t=document.querySelector('#tabs [data-t="design"]');t&&t.click();setTimeout(()=>{const m=$("#matc");m&&m.scrollIntoView({behavior:"smooth",block:"start"});},60);return;}
+  const dc=T.closest("[data-dc]");if(dc){const n=XDL[Number(dc.dataset.i)];if(!n)return;
+    if(dc.dataset.dc==="ok"){if(!confirm("Gửi xác nhận anh/chị đã chốt «"+n.title+"» cho đội ngũ?"))return;
+      if(await xAdvise("Xác nhận đã chốt: «"+n.title+"».",null,true)){const s=xls(xk("dc"),{});s[n.title]=1;xss(xk("dc"),s);xRender(D);}}
+    else xAdvise("Cần trao đổi thêm về: «"+n.title+"»"+(n.need_by?" (cần chốt trước "+fmt(n.need_by)+")":"")+".");
+    return;}
+  const mv=T.closest("[data-mv]");if(mv){const m=XML[Number(mv.dataset.i)];if(!m)return;const lab=m.name+(m.room?" ("+m.room+")":"");
+    const mark=s=>{const o=xls(xk("mv"),{});o[m.id]={s,t:nowVN()};xss(xk("mv"),o);xMats(D);};
+    if(mv.dataset.mv==="ok"){if(!confirm("Gửi xác nhận anh/chị duyệt «"+lab+"» cho đội ngũ?"))return;if(await xAdvise("Duyệt vật liệu/sản phẩm: «"+lab+"».",null,true))mark("ok");}
+    else if(mv.dataset.mv==="chg")xAsk("Cần chỉnh: "+lab,"Anh/chị muốn chỉnh điều gì (màu, kích thước, thương hiệu…)?",async t=>{if(await xAdvise("Góp ý vật liệu/sản phẩm «"+lab+"»: "+t,null,true))mark("chg");});
+    else xAdvise("Em muốn được tư vấn thêm về vật liệu/sản phẩm: «"+lab+"».");
+    return;}
+  const nx=T.closest("[data-nx]");if(nx){const a=nx.dataset.nx,id=nx.dataset.id;
+    if(a==="add")xEdit("");
+    else if(a==="edit")xEdit(id);
+    else if(a==="del"){if(confirm("Xoá ghi chú này khỏi thiết bị?")){XN=XN.filter(x=>x.id!==id);xss(xk("vn"),XN);xMats(D);}}
+    else if(a==="send"){const n=XN.find(x=>x.id===id);if(!n)return;nx.disabled=true;
+      const files=(n.imgs||[]).map((u,i)=>({b64:u.split(",")[1],mime:"image/jpeg",name:(n.title||"vat-lieu")+"-"+(i+1)+".jpg"}));
+      const txt="Ghi chú vật liệu"+(n.room?" · "+n.room:"")+(n.title?" · "+n.title:"")+(n.note?"\n"+n.note:"");
+      const ok=await xAdvise(txt,files);nx.disabled=false;
+      if(ok){n.sent=nowVN();xss(xk("vn"),XN);xMats(D);}}
+    return;}
+  const xi=T.closest("[data-xi]");if(xi){XE.imgs.splice(Number(xi.dataset.xi),1);xTray();return;}
+  if(T.id==="mt-s"){
+    const room=$("#mt-r").value.trim(),title=$("#mt-t").value.trim(),note=$("#mt-n").value.trim();
+    if(!title&&!note&&!XE.imgs.length){toast("Anh/chị nhập nội dung hoặc thêm hình trước nhé");return;}
+    const old=XN.slice(),rec={id:XE.id||"n"+Date.now().toString(36),room,title,note,imgs:XE.imgs.slice(),t:nowVN()};
+    const i=XN.findIndex(x=>x.id===rec.id);if(i>=0){rec.sent=XN[i].sent;XN[i]=rec;}else XN.unshift(rec);
+    if(!xss(xk("vn"),XN)){XN=old;toast("Bộ nhớ thiết bị đã đầy, hãy xoá bớt ghi chú hoặc giảm số hình");return;}
+    $("#dm").classList.add("hide");xMats(D);toast("Đã lưu ghi chú");return;}
+  if(T.id==="ak-s"){const v=($("#ak-t").value||"").trim();if(!v){toast("Anh/chị nhập nội dung trước nhé");return;}const cb=XAK;XAK=null;$("#dm").classList.add("hide");cb&&cb(v);return;}
+});
+document.addEventListener("change",async e=>{if(e.target.id!=="mt-f")return;
+  for(const f of Array.from(e.target.files||[])){if(XE.imgs.length>=4){toast("Tối đa 4 hình mỗi ghi chú");break;}const u=await xShr(f,1000,.65);if(u)XE.imgs.push(u);}
+  e.target.value="";xTray();});
+document.addEventListener("error",e=>{const i=e.target;if(i&&i.tagName==="IMG"&&i.closest&&i.closest(".pt .lg")){const m=document.createElement("em");m.textContent=i.dataset.ini||"";i.replaceWith(m);}},true);
 if(GATE){
   $("#lf").querySelector("p").textContent="Nhập mã công trình, email và mã PIN do Kiến Huỳnh cấp để vào trang dự án của anh/chị.";
   if(PCODE){$("#pc").value=PCODE;
