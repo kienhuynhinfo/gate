@@ -7,13 +7,14 @@
 <title>Cổng Khách · Kiến Huỳnh</title>
 <style>
 :root{--bg:#F5F5F4;--card:#fff;--ink:#1C1917;--muted:#78716C;--line:#E7E5E4;--brand:#C2410C;--brand-d:#9A3412;--brand-l:#FFF1E8;--ok:#3f7d4e;--warn:#c78a12;--late:#b3342b}
-@media (prefers-color-scheme:dark){:root{--bg:#1c1816;--card:#262120;--ink:#f1e9e2;--muted:#a89b90;--line:#3a322e;--brand:#e0794d;--brand-d:#f19a74;--brand-l:#3a2a22;--ok:#6fbf84;--warn:#e3b04b;--late:#ee7d73}}
 *{box-sizing:border-box;margin:0}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
 .hide{display:none!important}
 .wrap{max-width:760px;margin:0 auto;padding:0 16px 48px}
 .login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
 .lbox{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 24px}
+.lgo{display:block;width:64px;height:64px;border-radius:14px;background:#fff;border:1px solid var(--line);margin-bottom:14px;object-fit:contain}
+.hlg{width:38px;height:38px;border-radius:9px;background:#fff;border:1px solid var(--line);object-fit:contain;flex:none}
 .brand{font-weight:700;letter-spacing:.04em;color:var(--brand);font-size:13px;text-transform:uppercase}
 .lbox h1{font-size:22px;margin:6px 0 4px}
 .lbox p{color:var(--muted);font-size:14px;margin-bottom:18px}
@@ -50,7 +51,7 @@ html[data-theme=gantt] .chip.ld{color:#1E1B18}
 .np .nt{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:9px 10px;border-radius:10px;cursor:pointer}
 .np .nt:hover{background:var(--brand-l)}.np .nt small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.np .nt.nw b::before{content:"● ";color:var(--late)}
 .np .nt span{font-size:13px;line-height:1.35;display:block;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.pjb{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:default;display:block}
+.pjb{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:default;display:flex;align-items:center;gap:10px}
 .pjb.multi{cursor:pointer}.pjb.multi .t::after{content:" ▾";color:var(--brand);font-size:13px}
 .pk{position:fixed;left:12px;top:58px;width:min(340px,calc(100vw - 24px));max-height:70vh;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:21;padding:6px}
 .pk h4{font-size:12px;color:var(--muted);font-weight:600;padding:8px 10px 4px}
@@ -205,6 +206,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 
 <section id="login" class="login">
   <form class="lbox" id="lf" autocomplete="on">
+    <img class="lgo" src="/icon-192.png" alt="Kiến Huỳnh Design">
     <div class="brand">Kiến Huỳnh Design</div>
     <h1>Cổng Khách hàng</h1>
     <p>Theo dõi tiến độ công trình và trao đổi trực tiếp với đội ngũ Kiến Huỳnh.</p>
@@ -221,7 +223,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 
 <section id="app" class="hide">
   <header><div class="hrow">
-    <button type="button" class="pjb" id="pj"><div class="t" id="pn">Dự án</div><div class="s" id="ps"></div></button>
+    <button type="button" class="pjb" id="pj"><img class="hlg" src="/icon-192.png" alt=""><span><div class="t" id="pn">Dự án</div><div class="s" id="ps"></div></span></button>
     <div class="pk hide" id="pk"></div>
     <button class="rf" id="rf" aria-label="Làm mới"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button><div class="hr2"><button class="bl" id="bell" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg><i class="hide" id="bdot"></i></button><button class="out" id="lo">Thoát</button></div>
   </div></header>
