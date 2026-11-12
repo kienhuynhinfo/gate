@@ -413,7 +413,7 @@ function ChatBox(host,ch,rows,hint){
   inp.addEventListener("input",()=>{inp.style.height="auto";inp.style.height=Math.min(120,inp.scrollHeight)+"px";});
   const send=async()=>{const v=inp.value.trim();if(!v&&!box.pend.length)return;const fs=box.pend.slice();inp.value="";inp.style.height="auto";box.pend=[];drawTray();bt.disabled=true;
     const r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});bt.disabled=false;
-    if(r.ok){boxes.forEach(b=>b.ch===ch&&b.add(r.msgs,false));}else{inp.value=v;box.pend=fs;drawTray();alert(r.msg||"Gửi chưa được");}};
+    if(r.ok){showMsgs(ch,r.msgs);}else{inp.value=v;box.pend=fs;drawTray();alert(r.msg||"Gửi chưa được");}};
   inp.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.shiftKey||e.isComposing)return;if(window.matchMedia&&window.matchMedia("(hover:none) and (pointer:coarse)").matches)return;e.preventDefault();send();});
   box.add(rows||[],true);boxes.push(box);return box;
 }
@@ -687,17 +687,21 @@ function buildNotes(d){NKEY=CODE+SLUG;try{if(!localStorage.getItem("kh_ns_"+NKEY
   bellDot();}
 function bellDot(){const ls=lastSeen(),n=NOTES.filter(x=>x.t>ls).length;const b=$("#bdot");if(b)b.classList.toggle("hide",!n);}
 function openNotes(){const ls=lastSeen(),L=NOTES.slice().sort((a,b)=>b.t.localeCompare(a.t)).slice(0,15);
-  $("#np").innerHTML="<h3>Thông báo</h3>"+(L.length?L.map((x,i)=>'<button class="nt'+(x.t>ls?" nw":"")+'" data-i="'+i+'"><b style="font-size:12px;color:var(--muted)">'+esc(x.lbl)+"</b><span>"+esc(x.txt)+"</span><small>"+esc(x.t.slice(0,16).replace(" 23:59",""))+"</small></button>").join(""):'<div class="empty" style="padding:14px">Chưa có thông báo mới.</div>');
+  $("#np").innerHTML="<h3>Thông báo</h3>"+(L.some(x=>x.t>ls)?'<button class="btn ghost" id="nread" style="width:100%;margin:0 0 6px;padding:7px;font-size:13px">Đánh dấu đã đọc tất cả</button>':"")+(L.length?L.map((x,i)=>'<button class="nt'+(x.t>ls?" nw":"")+'" data-i="'+i+'"><b style="font-size:12px;color:var(--muted)">'+esc(x.lbl)+"</b><span>"+esc(x.txt)+"</span><small>"+esc(x.t.slice(0,16).replace(" 23:59",""))+"</small></button>").join(""):'<div class="empty" style="padding:14px">Chưa có thông báo mới.</div>');
   $("#np")._L=L;$("#np").classList.remove("hide");
-  try{localStorage.setItem("kh_ns_"+NKEY,nowVN());}catch(_){}bellDot();}
+  bellDot();}
 $("#bell").onclick=e=>{e.stopPropagation();$("#np").classList.contains("hide")?openNotes():$("#np").classList.add("hide");};
-$("#np").onclick=e=>{const b=e.target.closest(".nt");if(!b)return;const x=$("#np")._L[Number(b.dataset.i)];$("#np").classList.add("hide");const t=document.querySelector('#tabs [data-t="'+x.tab+'"]');t&&t.click();};
+$("#np").onclick=e=>{if(e.target.closest("#nread")){try{localStorage.setItem("kh_ns_"+NKEY,nowVN());}catch(_){}bellDot();openNotes();return;}const b=e.target.closest(".nt");if(!b)return;const x=$("#np")._L[Number(b.dataset.i)];$("#np").classList.add("hide");const t=document.querySelector('#tabs [data-t="'+x.tab+'"]');t&&t.click();};
 document.addEventListener("click",e=>{if(!e.target.closest("#np")&&!e.target.closest("#bell"))$("#np").classList.add("hide");});
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   ["home","design","build","docs","adv","me"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);document.body.classList.toggle("nos",b.dataset.t==="adv");fitChat();};
 $("#pf-s").onclick=async()=>{const r=await call({a:"profile",name:$("#pf-n").value,phone:$("#pf-p").value,address:$("#pf-a").value,note:$("#pf-t").value});$("#pf-m").textContent=r.ok?"Đã lưu thông tin.":(r.msg||"Chưa lưu được");};
 $("#pw-s").onclick=async()=>{const r=await call({a:"pin",old:$("#pw-o").value,new:$("#pw-n").value});$("#pw-m").textContent=r.ok?"Đã đổi PIN. Lần sau đăng nhập bằng PIN mới.":(r.msg||"Chưa đổi được");if(r.ok){$("#pw-o").value="";$("#pw-n").value="";}};
+function showMsgs(ch,msgs){const mine=msgs.filter(m=>m.email!=="kh-bot"),rest=msgs.filter(m=>m.email==="kh-bot");
+  boxes.forEach(b=>b.ch===ch&&b.add(mine,false));if(!rest.length)return;
+  const ty=[];boxes.forEach(b=>{if(b.ch!==ch)return;const l=b.el&&b.el.querySelector(".chat")||document.querySelector("#"+(ch==="b"?"cb":"cg")+" .chat");if(!l)return;const d=document.createElement("div");d.className="msg bot";d.innerHTML='<b class="who">Trợ lý Kiến Huỳnh</b><span class="muted">đang soạn tin…</span>';l.appendChild(d);l.scrollTop=l.scrollHeight;ty.push(d);});
+  setTimeout(()=>{ty.forEach(d=>d.remove());boxes.forEach(b=>b.ch===ch&&b.add(rest,false));},1500);}
 /* Tu van */
 const libHtml=items=>items.length?items.map(i=>'<div class="lib"><div><b>'+esc(i.title)+'</b><p>'+esc(i.summary||"")+'</p></div><button class="fw" data-ti="'+esc(i.title)+'" data-su="'+esc(i.summary||"")+'">Gửi nhóm</button></div>').join(""):'<div class="empty">Chưa có nội dung phù hợp. Anh/chị nhắn trợ lý bên dưới để được hỗ trợ.</div>';
 document.querySelector("#pb").addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;
@@ -718,7 +722,7 @@ const QHOW=[
 const qHtml=(intro,G)=>'<div class="muted">'+esc(intro)+"</div>"+G.map(g=>'<div class="qh">'+esc(g[0])+'</div><div class="qg">'+g[1].map(q=>'<button type="button" class="qc" data-q="'+esc(q[1])+'">'+esc(q[0])+"</button>").join("")+"</div>").join("")+'';
 $("#advbody").addEventListener("click",async e=>{const c=e.target.closest("[data-q]");if(!c||c.disabled)return;c.disabled=true;
   const r=await call({a:"send",ch:"b",text:c.dataset.q});c.disabled=false;
-  if(r.ok){boxes.forEach(b=>b.ch==="b"&&b.add(r.msgs,false));$("#advbody").innerHTML="";fitChat();toast("Đã gửi cho trợ lý");}else toast(r.msg||"Chưa gửi được, thử lại sau");});
+  if(r.ok){showMsgs("b",r.msgs);$("#advbody").innerHTML="";fitChat();toast("Đã gửi cho trợ lý");}else toast(r.msg||"Chưa gửi được, thử lại sau");});
 /* Tro ly: nut nho + khung noi, chuyen ket qua sang nhom du an */
 function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");clearTimeout(window._tt);window._tt=setTimeout(()=>e.classList.add("hide"),2200);}
 /* chieu cao thanh tab duoi day -> chua du khoang trong cuoi trang, khong thua */
