@@ -223,6 +223,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 .nb{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;background:var(--bg)}
 .nb .im{display:flex;gap:6px;overflow-x:auto;margin-top:6px}
 .nb .im img{width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer;flex:none}
+.dt{width:100%;border-collapse:collapse;font-size:13px}.dt th,.dt td{padding:6px 5px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}.dt th:first-child,.dt td:first-child{text-align:left}.dt th{font-size:12px;color:var(--muted);font-weight:600}.dt tr.g td{background:var(--card);font-weight:700;text-align:left;color:var(--brand-d)}.dt tr.gs td{font-weight:600;color:var(--muted)}.dt tr.tt td{font-weight:800;border-top:2px solid var(--brand);border-bottom:0;padding-top:9px}.dtw{overflow-x:auto;margin:8px -4px 0;padding:0 4px}
 .sech{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:18px}.sech b{font-size:14px}
 </style>
 </head>
@@ -278,6 +279,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
       <div class="card" id="bsum"></div>
       <div class="card" id="bplan"></div>
       <div class="card" id="bfin"></div>
+      <div class="card" id="bdt"></div>
       <div class="card"><h2>Nhật ký thi công</h2>
         <div class="calh"><button id="cprev" aria-label="Tháng trước">‹</button><b id="cmon"></b><button id="cnext" aria-label="Tháng sau">›</button></div>
         <div class="cal" id="cal"></div>
@@ -736,7 +738,7 @@ async function callX(b){try{const r=await fetch(APIX,{method:"POST",headers:{"Co
 const xVN=v=>{const t=Date.parse(v);return isNaN(t)?"":new Date(t+7*36e5).toISOString().slice(0,19).replace("T"," ");};
 let XLOAD=0;
 async function xLoad(d){if(d._x||XLOAD)return;XLOAD=1;const r=await callX({a:"x_home"});XLOAD=0;d._x=1;
-  if(r&&r.ok){d.meta=r.meta||d.meta;d.decisions=r.decisions||[];d.partners=r.partners||[];d.materials=r.materials||[];d.snotes=r.notes||[];d.xok=1;}
+  if(r&&r.ok){d.meta=r.meta||d.meta;d.decisions=r.decisions||[];d.partners=r.partners||[];d.materials=r.materials||[];d.snotes=r.notes||[];d.estimates=r.estimates||[];d.xok=1;}
   try{xRender(d);}catch(e){console.error("xRender",e);}}
 const xB64=async u=>{if(/^data:/.test(u))return u.split(",")[1];try{const b=await (await fetch(u)).blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(String(f.result).split(",")[1]);f.onerror=()=>ok(null);f.readAsDataURL(b);});}catch(_){return null;}};
 const XPART=[
@@ -809,7 +811,20 @@ function xRender(d){
      const lg='<div class="lg">'+(p.logo?'<img loading="lazy" referrerpolicy="no-referrer" alt="'+esc(p.name)+'" data-ini="'+ini+'" src="'+esc(p.logo)+'">':"<em>"+ini+"</em>")+"</div>";
      const body=lg+"<b>"+esc(p.name)+"</b><small>"+esc(p.field||"")+"</small>";
      return p.link?'<a class="pt" href="'+esc(p.link)+'" target="_blank" rel="noopener">'+body+"</a>":'<div class="pt off">'+body+"</div>";}).join("")+"</div>";
-  xMats(d);
+  xMats(d);xEst(d);
+}
+function xEst(d){
+  const E=d.estimates||[],el=$("#bdt");if(!el)return;
+  const num=x=>x==null||x===""?null:Number(x),amt=r=>{const a=num(r.amount);return a!=null?a:(num(r.qty)!=null&&num(r.unit_price)!=null?num(r.qty)*num(r.unit_price):0);};
+  let h="<h2>Bảng dự toán</h2>";
+  if(!E.length){el.innerHTML=h+'<div class="empty" style="padding:18px 8px">Bảng dự toán sẽ được cập nhật tại đây khi đội ngũ gửi.</div>';return;}
+  const G=[],idx={};E.forEach(r=>{const g=r.grp||"Hạng mục khác";if(!(g in idx)){idx[g]=G.length;G.push({g,rows:[]});}G[idx[g]].rows.push(r);});
+  let tot=0,i=0,rows="";
+  G.forEach(x=>{let sub=0;rows+='<tr class="g"><td colspan="5">'+esc(x.g)+"</td></tr>";
+    x.rows.forEach(r=>{i++;const a=amt(r);sub+=a;rows+="<tr><td>"+i+". "+esc(r.name)+(r.note?'<div class="mini">'+esc(r.note)+"</div>":"")+"</td><td>"+esc(r.unit||"")+"</td><td>"+(num(r.qty)!=null?num(r.qty).toLocaleString("vi-VN"):"")+"</td><td>"+(num(r.unit_price)!=null?num(r.unit_price).toLocaleString("vi-VN"):"")+"</td><td>"+(a?a.toLocaleString("vi-VN"):"")+"</td></tr>";});
+    tot+=sub;if(G.length>1)rows+='<tr class="gs"><td colspan="4">Cộng nhóm</td><td>'+sub.toLocaleString("vi-VN")+"</td></tr>";});
+  rows+='<tr class="tt"><td colspan="4">Tổng dự toán</td><td>'+tot.toLocaleString("vi-VN")+"</td></tr>";
+  el.innerHTML=h+'<div class="muted">Dự toán chi phí thi công do Kiến Huỳnh lập. Đơn vị tiền: đồng.</div><div class="dtw"><table class="dt"><thead><tr><th>Hạng mục</th><th>ĐVT</th><th>KL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>'+rows+"</tbody></table></div>"+'<div class="sub">Số liệu có thể được điều chỉnh khi có thay đổi thiết kế hoặc vật liệu; đội ngũ sẽ báo anh/chị trước khi áp dụng.</div>';
 }
 let XDL=[],XML=[],XN=[],XE={id:"",imgs:[]},XAK=null;
 function xMatList(d){
