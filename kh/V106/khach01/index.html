@@ -366,6 +366,7 @@ const mini=st=>{st=sortStaff(st);return st.length?st.map(s=>esc(s.name)+" ("+esc
 
 /* Chat box dung chung (nhom / rieng) */
 const FR=/\[\[F:([^|\]]+)\|([^|\]]*)\|([^\]]*)\]\]/g;
+const DR=/\[\[D:([-\w]{20,})\|([^\]]*)\]\]/g;
 let ATT=false;
 const IC_CLIP='<svg viewBox="0 0 24 24"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7-7l9-9a3.3 3.3 0 0 1 4.7 4.7l-9 9a1.7 1.7 0 0 1-2.4-2.4l8.3-8.3"/></svg>';
 const IC_IMG='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>';
@@ -386,15 +387,15 @@ function ChatBox(host,ch,rows,hint){
     if(reset){list.innerHTML="";box.last=0;}
     arr.forEach(m=>{if(m.n<=box.last)return;box.last=m.n;if(ch==="g")noteMsg(m);
       const isBot=m.email==="kh-bot"||m.email==="em",mine=(m.email||"").toLowerCase()===me.toLowerCase();
-      let att="";const txt=String(m.noi_dung||"").replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
+      let att="";const txt=String(m.noi_dung||"").replace(DR,(a,id,cp)=>{att+='<img class="im dr" src="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w600" data-full="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w1600" alt="'+esc(cp)+'" title="'+esc(cp)+'" loading="lazy" onerror="this.remove()">';return "";}).replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
       const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them");
       el.dataset.txt=txt||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
       el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(txt)+att+"<small>"+esc(String(m.ngay||"").slice(0,16))+"</small>"+(ch==="b"&&isBot?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':"");list.appendChild(el);
-      el.querySelectorAll("img.im").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
+      el.querySelectorAll("img.im:not(.dr)").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
     if(!list.children.length)list.innerHTML='<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
     else if(list.firstChild.className==="empty")list.firstChild.remove();
     list.scrollTop=list.scrollHeight;};
-  list.addEventListener("click",async e=>{const im=e.target.closest("img.im");if(im&&im.src){$("#lb img").src=im.src;$("#lb").classList.remove("hide");return;}
+  list.addEventListener("click",async e=>{const im=e.target.closest("img.im");if(im&&im.src){$("#lb img").src=im.dataset.full||im.src;$("#lb").classList.remove("hide");return;}
     const f=e.target.closest(".fl");if(f){const u=await fileBlob(ch,f.dataset.f);if(u){const a=document.createElement("a");a.href=u;a.download=f.dataset.n||"tep";a.click();}}});
   const drawTray=()=>{tray.classList.toggle("hide",!box.pend.length);tray.innerHTML=box.pend.map((x,i)=>'<div class="tt">'+(x.thumb?'<img src="'+x.thumb+'">':esc(String(x.name).slice(0,14)))+'<a data-x="'+i+'">✕</a></div>').join("");};
   tray.onclick=e=>{const a=e.target.closest("[data-x]");if(a){box.pend.splice(Number(a.dataset.x),1);drawTray();}};
