@@ -65,7 +65,7 @@ html[data-theme=gantt] .chip.ld{color:#1E1B18}
 .tabs button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tabs button.on{color:var(--brand);font-weight:700}
 .tabs button.on i{background:var(--brand-l)}
-body{padding-bottom:84px}
+body{padding-bottom:0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px}
 .card h2{font-size:15px;margin-bottom:10px}
 .big{font-size:30px;font-weight:700;color:var(--brand);line-height:1.15}
@@ -145,7 +145,7 @@ details.sm summary::after{content:" ▾"}
 .bm button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:12px 8px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:center}
 .bm button small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:2px}
 .pvf{width:100%;height:68vh;border:1px solid var(--line);border-radius:10px;background:#fff;margin-top:8px}
-main.wrap{padding-bottom:150px}
+main.wrap{padding-bottom:calc(var(--tb,62px) + 16px)}
 .cap{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.25}
 
 body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
@@ -462,7 +462,7 @@ $("#pk").addEventListener("click",async e=>{const b=e.target.closest("button[dat
 async function enter(){
   const d=await call({a:"home"});
   if(!d.ok){token=null;try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}$("#login").classList.remove("hide");$("#app").classList.add("hide");return false;}
-  $("#login").classList.add("hide");$("#app").classList.remove("hide");boxes=[];NOTES=NOTES.filter(x=>x.id[0]==="m");render(d);buildNotes(d);
+  $("#login").classList.add("hide");$("#app").classList.remove("hide");setTb();boxes=[];NOTES=NOTES.filter(x=>x.id[0]==="m");render(d);buildNotes(d);
   clearInterval(timer);
   timer=setInterval(async()=>{if(document.hidden)return;
     for(const ch of["g","b"]){const mx=Math.max(0,...boxes.filter(b=>b.ch===ch).map(b=>b.last));
@@ -677,6 +677,9 @@ document.querySelector("#pb").addEventListener("click",async e=>{const b=e.targe
     body.innerHTML="<b>Thiết kế</b>"+libHtml(r.items||[])+"<b>Thi công</b>"+libHtml(r2.items||[]);}});
 /* Tro ly: nut nho + khung noi, chuyen ket qua sang nhom du an */
 function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");clearTimeout(window._tt);window._tt=setTimeout(()=>e.classList.add("hide"),2200);}
+/* chieu cao thanh tab duoi day -> chua du khoang trong cuoi trang, khong thua */
+function setTb(){const t=document.querySelector(".tabs"),h=t?t.offsetHeight:0;if(h>0)document.documentElement.style.setProperty("--tb",h+"px");}
+window.addEventListener("resize",setTb);window.addEventListener("orientationchange",setTb);
 function fitChat(){const v=$("#v-adv");if(v.classList.contains("hide"))return;
   const tb=document.querySelector(".tabs").offsetHeight,top=v.getBoundingClientRect().top+window.scrollY,vh=window.visualViewport?window.visualViewport.height:window.innerHeight;
   v.style.height=Math.max(320,vh-top-tb-6)+"px";}
