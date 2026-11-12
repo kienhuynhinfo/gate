@@ -159,9 +159,9 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 #cg .chat,#cb .chat{flex:1;min-height:0;max-height:none}
 .send{flex:none}
 .qh{font-weight:600;font-size:13px;margin:10px 0 4px;color:var(--brand-d)}.qg{display:flex;flex-direction:column;gap:6px}.qc{text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink,inherit);border-radius:12px;padding:9px 12px;font:inherit;font-size:13.5px;line-height:1.35;cursor:pointer}.qc.sent{opacity:.55}.qc:disabled{opacity:.6}
-.bpt{display:flex;gap:6px;margin-bottom:6px;flex:none}.bpt .btn{flex:1;padding:9px 4px;font-size:13px}
-#advbody{max-height:26vh;overflow-y:auto;font-size:14px;flex:none}#advbody:empty{display:none}
-#fwall{flex:none;margin-top:8px;padding:11px}
+.bpt{display:flex;gap:5px;margin-bottom:4px;flex:none}.bpt .btn{flex:1;padding:6px 2px;font-size:12px;border-radius:999px;line-height:1.2}
+#advbody{max-height:20vh;overflow-y:auto;font-size:13px;flex:none}#advbody:empty{display:none}.qh{font-size:11.5px;margin:4px 0 3px}.qg{flex-direction:row;flex-wrap:wrap;gap:5px}.qc{padding:5px 10px;font-size:12.5px;border-radius:999px;line-height:1.25}#advbody .note,#advbody .muted{font-size:11.5px;margin:2px 0}
+#fwall{flex:none;margin-top:6px;padding:8px;font-size:13px}
 .step{position:relative;padding:0 0 14px 30px}.step:last-child{padding-bottom:2px}
 .step::before{content:"";position:absolute;left:9px;top:20px;bottom:-4px;width:2px;background:var(--line)}.step:last-child::before{display:none}
 .step .dot{position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700}
@@ -322,7 +322,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
         <div class="bpt"><button class="btn ghost" data-a="lib">Thư viện mẫu</button><button class="btn ghost" data-a="sug">Đề xuất</button><button class="btn ghost" data-a="how">Tư vấn TK – TC</button><button class="btn ghost" data-go="mat">Vật liệu</button></div>
         <div id="advbody"></div>
         <div id="cb"></div>
-        <button class="btn full" id="fwall">Chuyển cuộc trao đổi sang nhóm dự án</button>
+        <button class="btn full" id="fwall">Gửi tóm tắt yêu cầu sang nhóm dự án</button>
       </div>
     </div>
   </main>
@@ -704,21 +704,21 @@ document.querySelector("#pb").addEventListener("click",async e=>{const b=e.targe
   const body=$("#advbody"),a=b.dataset.a;body.innerHTML='<div class="muted">Đang tải…</div>';
   if(a==="lib"){body.innerHTML='<input id="lq" placeholder="Tìm mẫu, phong cách…"><div id="lr" style="margin-top:8px"></div>';
     const run=async()=>{const r=await call({a:"lib",q:$("#lq").value});$("#lr").innerHTML=libHtml(r.items||[]);};$("#lq").oninput=()=>{clearTimeout(window._lt);window._lt=setTimeout(run,300);};run();}
-  else if(a==="sug")body.innerHTML=qHtml("Anh/chị quan tâm điều gì? Chạm vào câu hỏi để gửi cho trợ lý, em sẽ hỏi thêm để hiểu rõ nhu cầu của gia đình mình.",QSUG);
-  else body.innerHTML=qHtml("Chạm vào câu hỏi để gửi cho trợ lý, em sẽ trao đổi và làm rõ thêm yêu cầu của anh/chị.",QHOW);});
+  else if(a==="sug")body.innerHTML=qHtml("Chạm để bắt đầu, em sẽ hỏi từng câu một.",QSUG);
+  else body.innerHTML=qHtml("Chạm để bắt đầu, em sẽ hỏi từng câu một.",QHOW);});
 /* bo cau hoi goi mo: bam vao = khach gui tin cho tro ly, khong co noi dung mau san */
 const QSUG=[
- ["Công năng và phong cách",["Gia đình tôi nên chọn phong cách nào cho hợp với nhu cầu sinh hoạt?","Tôi muốn được tư vấn cách bố trí công năng các phòng cho phù hợp với gia đình.","Tôi muốn nhờ gợi ý ánh sáng, thông gió và không gian xanh cho ngôi nhà."]],
- ["Vật liệu và thiết bị",["Tôi muốn được gợi ý vật liệu cho từng khu vực trong nhà.","Tôi muốn nhờ tư vấn thiết bị vệ sinh, sen vòi và thiết bị thông minh.","Tôi muốn bàn về ngân sách và hạng mục nên ưu tiên đầu tư."]]
+ ["Công năng và phong cách",[["Chọn phong cách","Gia đình tôi nên chọn phong cách nào cho hợp với nhu cầu sinh hoạt?"],["Bố trí công năng","Tôi muốn được tư vấn cách bố trí công năng các phòng cho phù hợp với gia đình."],["Ánh sáng, thông gió","Tôi muốn nhờ gợi ý ánh sáng, thông gió và không gian xanh cho ngôi nhà."]]],
+ ["Vật liệu và thiết bị",[["Vật liệu từng khu vực","Tôi muốn được gợi ý vật liệu cho từng khu vực trong nhà."],["Thiết bị vệ sinh, thông minh","Tôi muốn nhờ tư vấn thiết bị vệ sinh, sen vòi và thiết bị thông minh."],["Ngân sách ưu tiên","Tôi muốn bàn về ngân sách và hạng mục nên ưu tiên đầu tư."]]]
 ];
 const QHOW=[
- ["Thiết kế",["Tôi muốn trao đổi để chốt phương án mặt bằng.","Tôi muốn nhờ tư vấn màu sắc và vật liệu mặt tiền.","Tôi muốn nhờ tư vấn nội thất cho từng phòng."]],
- ["Thi công",["Tôi muốn hỏi các mốc sắp tới cần tôi quyết định.","Tôi muốn nhờ tư vấn chọn vật liệu hoàn thiện kịp tiến độ thi công.","Tôi muốn hỏi về chi phí phát sinh và cách kiểm soát.","Tôi muốn hỏi về bảo hành và bàn giao công trình."]]
+ ["Thiết kế",[["Chốt mặt bằng","Tôi muốn trao đổi để chốt phương án mặt bằng."],["Màu sắc mặt tiền","Tôi muốn nhờ tư vấn màu sắc và vật liệu mặt tiền."],["Nội thất từng phòng","Tôi muốn nhờ tư vấn nội thất cho từng phòng."]]],
+ ["Thi công",[["Mốc cần quyết định","Tôi muốn hỏi các mốc sắp tới cần tôi quyết định."],["Chọn vật liệu hoàn thiện","Tôi muốn nhờ tư vấn chọn vật liệu hoàn thiện kịp tiến độ thi công."],["Chi phí phát sinh","Tôi muốn hỏi về chi phí phát sinh và cách kiểm soát."],["Bảo hành, bàn giao","Tôi muốn hỏi về bảo hành và bàn giao công trình."]]]
 ];
-const qHtml=(intro,G)=>'<div class="muted">'+esc(intro)+"</div>"+G.map(g=>'<div class="qh">'+esc(g[0])+'</div><div class="qg">'+g[1].map(q=>'<button type="button" class="qc" data-q="'+esc(q)+'">'+esc(q)+"</button>").join("")+"</div>").join("")+'<div class="note">Anh/chị cũng có thể tự nhắn nhu cầu riêng ở khung chat bên dưới.</div>';
+const qHtml=(intro,G)=>'<div class="muted">'+esc(intro)+"</div>"+G.map(g=>'<div class="qh">'+esc(g[0])+'</div><div class="qg">'+g[1].map(q=>'<button type="button" class="qc" data-q="'+esc(q[1])+'">'+esc(q[0])+"</button>").join("")+"</div>").join("")+'';
 $("#advbody").addEventListener("click",async e=>{const c=e.target.closest("[data-q]");if(!c||c.disabled)return;c.disabled=true;
   const r=await call({a:"send",ch:"b",text:c.dataset.q});c.disabled=false;
-  if(r.ok){boxes.forEach(b=>b.ch==="b"&&b.add(r.msgs,false));c.classList.add("sent");toast("Đã gửi cho trợ lý");}else toast(r.msg||"Chưa gửi được, thử lại sau");});
+  if(r.ok){boxes.forEach(b=>b.ch==="b"&&b.add(r.msgs,false));$("#advbody").innerHTML="";fitChat();toast("Đã gửi cho trợ lý");}else toast(r.msg||"Chưa gửi được, thử lại sau");});
 /* Tro ly: nut nho + khung noi, chuyen ket qua sang nhom du an */
 function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");clearTimeout(window._tt);window._tt=setTimeout(()=>e.classList.add("hide"),2200);}
 /* chieu cao thanh tab duoi day -> chua du khoang trong cuoi trang, khong thua */
@@ -734,14 +734,16 @@ $("#v-adv").addEventListener("click",e=>{const b=e.target.closest(".cvb");if(!b)
   const l=$(b.dataset.c==="g"?"#cg .chat":"#cb .chat");if(l)l.scrollTop=l.scrollHeight;});
 async function toGroup(text){text=String(text).slice(0,1900);const r=await call({a:"send",ch:"g",text});
   if(r.ok){boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));toast("Đã chuyển sang nhóm dự án");}else toast(r.msg||"Chưa chuyển được");}
-$("#pb").addEventListener("click",e=>{
+$("#pb").addEventListener("click",async e=>{
   const w=e.target.closest(".fw");if(w){
     if(w.dataset.fw){const m=w.closest(".msg");toGroup("Từ trợ lý: "+(m.dataset.txt||""));}
     else if(w.dataset.ti!==undefined){toGroup("Từ thư viện: "+w.dataset.ti+(w.dataset.su?" – "+w.dataset.su:""));}
     return;}
-  if(e.target.id==="fwall"){const L=Array.from(document.querySelectorAll("#cb .msg")).slice(-10).map(m=>m.dataset.who+": "+m.dataset.txt);
-    if(!L.length){toast("Chưa có nội dung để chuyển");return;}
-    let t="Chuyển từ cuộc trao đổi với trợ lý:\n"+L.join("\n");if(t.length>1900)t="Chuyển từ cuộc trao đổi với trợ lý:\n…"+t.slice(-1850);toGroup(t);}});
+  if(e.target.id==="fwall"){const bt=e.target;if(bt.disabled)return;
+    if(!document.querySelectorAll("#cb .msg").length){toast("Chưa có nội dung để chuyển");return;}
+    bt.disabled=true;const old=bt.textContent;bt.textContent="Đang tóm tắt…";
+    const r=await call({a:"sum"});bt.disabled=false;bt.textContent=old;
+    if(r.ok){boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));toast("Đã gửi bản tóm tắt sang nhóm dự án");}else toast(r.msg||"Chưa chuyển được");}});
 /* ===== Tong quan: moc du an, viec can chot som, doi tac | Thiet ke: duyet vat lieu ===== */
 const xls=(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(_){return def;}};
 const xss=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
