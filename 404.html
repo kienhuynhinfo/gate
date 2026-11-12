@@ -390,8 +390,8 @@ function ChatBox(host,ch,rows,hint){
       const isBot=m.email==="kh-bot"||m.email==="em",mine=(m.email||"").toLowerCase()===me.toLowerCase();
       let att="";const txt=String(m.noi_dung||"").replace(DR,(a,id,cp)=>{att+='<img class="im dr" src="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w600" data-full="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w1600" alt="'+esc(cp)+'" title="'+esc(cp)+'" loading="lazy" onerror="this.remove()">';return "";}).replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
       const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them");
-      el.dataset.txt=txt||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
-      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(txt)+att+"<small>"+esc(String(m.ngay||"").slice(0,16))+"</small>"+(ch==="b"&&isBot?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':"");list.appendChild(el);
+      el.dataset.txt=String(txt||"").replace(/\*\*/g,"")||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
+      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(txt).replace(/\*\*([^*\n]{1,60})\*\*/g,"<b>$1</b>")+att+"<small>"+esc(String(m.ngay||"").slice(0,16))+"</small>"+(ch==="b"&&isBot?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':"");list.appendChild(el);
       el.querySelectorAll("img.im:not(.dr)").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
     if(!list.children.length)list.innerHTML='<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
     else if(list.firstChild.className==="empty")list.firstChild.remove();
