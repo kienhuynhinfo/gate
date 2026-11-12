@@ -50,6 +50,12 @@ html[data-theme=gantt] .chip.ld{color:#1E1B18}
 .np .nt{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:9px 10px;border-radius:10px;cursor:pointer}
 .np .nt:hover{background:var(--brand-l)}.np .nt small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.np .nt.nw b::before{content:"● ";color:var(--late)}
 .np .nt span{font-size:13px;line-height:1.35;display:block;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pjb{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:default;display:block}
+.pjb.multi{cursor:pointer}.pjb.multi .t::after{content:" ▾";color:var(--brand);font-size:13px}
+.pk{position:fixed;left:12px;top:58px;width:min(340px,calc(100vw - 24px));max-height:70vh;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:21;padding:6px}
+.pk h4{font-size:12px;color:var(--muted);font-weight:600;padding:8px 10px 4px}
+.pk button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:10px;border-radius:10px;cursor:pointer}
+.pk button:hover,.pk button.on{background:var(--brand-l)}.pk button b{display:block;font-size:14px}.pk button span{font-size:12px;color:var(--muted)}
 .out{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabs div{max-width:760px;margin:0 auto;display:flex;padding:6px 4px}
@@ -202,6 +208,8 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
     <div class="brand">Kiến Huỳnh Design</div>
     <h1>Cổng Khách hàng</h1>
     <p>Theo dõi tiến độ công trình và trao đổi trực tiếp với đội ngũ Kiến Huỳnh.</p>
+    <label for="pc">Mã công trình</label>
+    <input id="pc" name="project" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="Ví dụ: 106" maxlength="20" required>
     <label for="em">Email</label>
     <input id="em" name="username" type="text" inputmode="email" autocomplete="username" autocapitalize="none" required>
     <label for="pin">Mã PIN (4 số)</label>
@@ -213,7 +221,8 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 
 <section id="app" class="hide">
   <header><div class="hrow">
-    <div><div class="t" id="pn">Dự án</div><div class="s" id="ps"></div></div>
+    <button type="button" class="pjb" id="pj"><div class="t" id="pn">Dự án</div><div class="s" id="ps"></div></button>
+    <div class="pk hide" id="pk"></div>
     <button class="rf" id="rf" aria-label="Làm mới"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button><div class="hr2"><button class="bl" id="bell" aria-label="Thông báo"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg><i class="hide" id="bdot"></i></button><button class="out" id="lo">Thoát</button></div>
   </div></header>
   <div class="tabs"><div id="tabs">
@@ -298,10 +307,12 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 <div id="lb" class="hide"><img alt=""></div>
 
 <script>
-const _m=location.pathname.match(/^\/kh\/([A-Za-z0-9-]+)\/(khach\d+)/i)||[];
-const CODE=(_m[1]||"").toUpperCase(),SLUG=(_m[2]||"").toLowerCase();
-const GATE=!CODE;
-if(GATE&&!/^\/kh\/?$/i.test(location.pathname))location.replace("/");
+const _m=location.pathname.match(/^\/kh\/([A-Za-z0-9-]+)(?:\/(khach\d+))?/i)||[];
+const PCODE=/^index$/i.test(_m[1]||"")?"":(_m[1]||"").toUpperCase();
+const SLUG=(_m[2]||"").toLowerCase();
+const CODE=SLUG?PCODE:"";
+const GATE=!SLUG;
+if(GATE&&!/^\/kh(\/[A-Za-z0-9-]+)?\/?$/i.test(location.pathname))location.replace("/");
 const API="https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-portal";
 const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -379,7 +390,7 @@ b.onclick=function(){if(ios&&!sa){alert('Trên iPhone: bấm nút Chia sẻ củ
 upd();try{OS.User.PushSubscription.addEventListener('change',upd);}catch(x){}});}
 function render(d){
   D=d;me=d.email||me;try{khPush(me);}catch(_){}const P=d.project,s=d.site,prog=d.progress||[];
-  $("#pn").textContent=P.name||P.code;$("#ps").textContent=P.code+" · Xin chào "+(d.profile.name||"");
+  $("#pn").textContent=P.name||P.code;setProjects(d.projects||[],P.code);$("#ps").textContent=P.code+" · Xin chào "+(d.profile.name||"");
   const done=prog.filter(p=>p.status==="Hoàn thành").length;
   const pct=s&&s.percent_done!=null?Number(s.percent_done):prog.length?Math.round(done/prog.length*100):0;
   const PL=d.plan||{items:[],pct:0};
@@ -432,6 +443,20 @@ const thumb=p=>p.thumb||(p.id||gid(p.url)?"https://drive.google.com/thumbnail?id
 const full=p=>p.full||(p.id||gid(p.url)?"https://drive.google.com/thumbnail?id="+(p.id||gid(p.url))+"&sz=w1600":p.url);
 document.addEventListener("click",e=>{const i=e.target.closest(".grid img");if(i){$("#lb img").src=i.dataset.full;$("#lb").classList.remove("hide");}else if(e.target.closest("#lb"))$("#lb").classList.add("hide");});
 
+/* ===== Chuyen du an (email co nhieu cong trinh) ===== */
+let PJ=[];
+function setProjects(L,cur){PJ=L;const b=$("#pj");b.classList.toggle("multi",L.length>1);$("#pk").classList.add("hide");
+  $("#pk").innerHTML='<h4>Chuyển công trình</h4>'+L.map(x=>'<button type="button" data-c="'+esc(x.code)+'"'+(String(x.code).toUpperCase()===String(cur).toUpperCase()?' class="on"':'')+'><b>'+esc(x.name||x.code)+'</b><span>'+esc(x.code)+'</span></button>').join("");}
+$("#pj").addEventListener("click",e=>{e.stopPropagation();if(PJ.length>1)$("#pk").classList.toggle("hide");});
+document.addEventListener("click",e=>{if(!e.target.closest("#pk")&&!e.target.closest("#pj"))$("#pk").classList.add("hide");});
+$("#pk").addEventListener("click",async e=>{const b=e.target.closest("button[data-c]");if(!b)return;
+  if(b.dataset.c.toUpperCase()===CODE){$("#pk").classList.add("hide");return;}
+  b.disabled=true;
+  try{const r=await call({a:"switch",code:b.dataset.c});
+    if(!r.ok){toast(r.msg||"Chưa chuyển được công trình");b.disabled=false;return;}
+    try{localStorage.setItem("kh_tk_"+r.code.toUpperCase()+r.slug,r.token);localStorage.setItem("kh_sl_"+r.code.toUpperCase(),r.slug);}catch(_){}
+    location.href="/kh/"+r.code+"/"+r.slug;}
+  catch(_){toast("Không kết nối được, vui lòng thử lại");b.disabled=false;}});
 async function enter(){
   const d=await call({a:"home"});
   if(!d.ok){token=null;try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}$("#login").classList.remove("hide");$("#app").classList.add("hide");return false;}
@@ -443,11 +468,12 @@ async function enter(){
   return true;
 }
 $("#lf").addEventListener("submit",async e=>{e.preventDefault();$("#le").textContent="";$("#lbt").disabled=true;
-  try{const r=await call({a:"login",code:CODE,slug:SLUG,email:$("#em").value.trim(),pin:$("#pin").value.trim()});
+  const pc=$("#pc").value.trim();if(!pc){$("#le").textContent="Nhập mã công trình";$("#lbt").disabled=false;$("#pc").focus();return;}
+  try{const r=await call({a:"login",code:pc,slug:SLUG,email:$("#em").value.trim(),pin:$("#pin").value.trim()});
     if(!r.ok){$("#le").textContent=r.msg||"Không đăng nhập được";return;}
     token=r.token;me=$("#em").value.trim();
-    if(GATE){try{localStorage.setItem("kh_tk_"+r.code.toUpperCase()+r.slug,token);localStorage.setItem("kh_em",me);}catch(_){}location.replace("/kh/"+r.code+"/"+r.slug);return;}
-    try{localStorage.setItem("kh_tk_"+CODE+SLUG,token);localStorage.setItem("kh_em",me);}catch(_){}
+    if(GATE||r.code.toUpperCase()!==CODE||r.slug!==SLUG){try{localStorage.setItem("kh_tk_"+r.code.toUpperCase()+r.slug,token);localStorage.setItem("kh_em",me);localStorage.setItem("kh_sl_"+r.code.toUpperCase(),r.slug);}catch(_){}location.replace("/kh/"+r.code+"/"+r.slug);return;}
+    try{localStorage.setItem("kh_tk_"+CODE+SLUG,token);localStorage.setItem("kh_em",me);localStorage.setItem("kh_sl_"+CODE,SLUG);}catch(_){}
     await enter();}catch(_){$("#le").textContent="Không kết nối được, vui lòng thử lại";}finally{$("#lbt").disabled=false;}});
 $("#lo").onclick=()=>{try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}location.reload();};
 let DIARY=[],CAL=null;
@@ -667,8 +693,18 @@ $("#pb").addEventListener("click",e=>{
   if(e.target.id==="fwall"){const L=Array.from(document.querySelectorAll("#cb .msg")).slice(-10).map(m=>m.dataset.who+": "+m.dataset.txt);
     if(!L.length){toast("Chưa có nội dung để chuyển");return;}
     let t="Chuyển từ cuộc trao đổi với trợ lý:\n"+L.join("\n");if(t.length>1900)t="Chuyển từ cuộc trao đổi với trợ lý:\n…"+t.slice(-1850);toGroup(t);}});
-if(GATE){$("#lf").querySelector("p").textContent="Đăng nhập bằng email và mã PIN do Kiến Huỳnh cấp để vào trang dự án của anh/chị.";}
-else if(token)enter();
+if(GATE){
+  $("#lf").querySelector("p").textContent="Nhập mã công trình, email và mã PIN do Kiến Huỳnh cấp để vào trang dự án của anh/chị.";
+  if(PCODE){$("#pc").value=PCODE;
+    /* da dang nhap truoc do tren thiet bi nay: vao thang du an */
+    try{const cands=[PCODE,"V"+PCODE];for(const c of cands){const sl=localStorage.getItem("kh_sl_"+c);if(sl&&localStorage.getItem("kh_tk_"+c+sl)){location.replace("/kh/"+c+"/"+sl);break;}}}catch(_){}}
+  try{if(me)$("#em").value=me;}catch(_){}
+  setTimeout(()=>{try{(PCODE?($("#em").value?$("#pin"):$("#em")):$("#pc")).focus();}catch(_){}},50);
+}
+else{
+  $("#pc").value=CODE;
+  if(token)enter();
+}
 </script>
 </body>
 </html>
