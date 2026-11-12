@@ -178,6 +178,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 .rdc{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:6px;margin:8px -4px 0}
 .rdc>div{flex:0 0 82%;scroll-snap-align:center;margin:0 4px}
 .rdc img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;background:var(--brand-l);cursor:pointer;display:block}
+.rdc.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;overflow:visible;margin:8px 0 0}.rdc.g>div{flex:none;margin:0}.rdc.g img{aspect-ratio:1;border-radius:10px}.rdc.g .cap{font-size:12px;margin-top:4px}.rdc.g .cap small{display:none}
 .rdc .cap{font-size:13px;color:var(--ink);margin-top:6px;font-weight:600}.rdc .cap small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
 #rv{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:17;display:flex;align-items:flex-end;justify-content:center}
 .rvb{background:var(--bg);width:100%;max-width:760px;max-height:94vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom))}
@@ -563,7 +564,7 @@ let RV=[],RI=0;
 function renderRenders(docs){
   RV=docs.filter(x=>isRender(x)&&x.url&&gid(x.url)&&!/\/folders\//.test(x.url));
   const oth=docs.filter(x=>isRender(x)&&!RV.includes(x));
-  $("#rdr").innerHTML=RV.length||oth.length?(RV.length?'<div class="rdc">'+RV.map((x,i)=>'<div><img loading="lazy" alt="'+esc(x.title)+'" src="'+thumb({url:x.url})+'" data-rv="'+i+'"><div class="cap">'+esc(x.title)+"<small>"+fmt(x.doc_date)+" · chạm để xem lớn và góp ý</small></div></div>").join("")+"</div>":"")+oth.map(docRow).join(""):'<div class="empty">Hình phối cảnh sẽ được cập nhật tại đây khi đội ngũ thiết kế hoàn thiện. Anh/chị có thể xem, góp ý hoặc đồng ý ngay trên từng hình.</div>';}
+  $("#rdr").innerHTML=RV.length||oth.length?(RV.length?'<div class="rdc g">'+RV.map((x,i)=>'<div><img loading="lazy" alt="'+esc(x.title)+'" src="'+thumb({url:x.url})+'" data-rv="'+i+'"><div class="cap">'+esc(x.title)+"<small>"+fmt(x.doc_date)+" · chạm để xem lớn và góp ý</small></div></div>").join("")+"</div>":"")+oth.map(docRow).join(""):'<div class="empty">Hình phối cảnh sẽ được cập nhật tại đây khi đội ngũ thiết kế hoàn thiện. Anh/chị có thể xem, góp ý hoặc đồng ý ngay trên từng hình.</div>';}
 function showRv(i){RI=(i+RV.length)%RV.length;const x=RV[RI];$("#rvt").textContent="Phối cảnh "+(RI+1)+"/"+RV.length;$("#rvimg").src=full({url:x.url});$("#rvc").textContent=x.title+" · "+fmt(x.doc_date);$("#rvm").value="";$("#rv").classList.remove("hide");}
 $("#rvx").onclick=()=>$("#rv").classList.add("hide");
 $("#rv").addEventListener("click",e=>{if(e.target.id==="rv")$("#rv").classList.add("hide");});
