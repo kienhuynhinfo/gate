@@ -158,6 +158,7 @@ body.nos{overflow:hidden}body.nos main.wrap{padding-bottom:0}
 #cg,#cb{flex:1;min-height:0;display:flex;flex-direction:column}
 #cg .chat,#cb .chat{flex:1;min-height:0;max-height:none}
 .send{flex:none}
+.qh{font-weight:600;font-size:13px;margin:10px 0 4px;color:var(--brand-d)}.qg{display:flex;flex-direction:column;gap:6px}.qc{text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink,inherit);border-radius:12px;padding:9px 12px;font:inherit;font-size:13.5px;line-height:1.35;cursor:pointer}.qc.sent{opacity:.55}.qc:disabled{opacity:.6}
 .bpt{display:flex;gap:6px;margin-bottom:6px;flex:none}.bpt .btn{flex:1;padding:9px 4px;font-size:13px}
 #advbody{max-height:26vh;overflow-y:auto;font-size:14px;flex:none}#advbody:empty{display:none}
 #fwall{flex:none;margin-top:8px;padding:11px}
@@ -701,10 +702,21 @@ document.querySelector("#pb").addEventListener("click",async e=>{const b=e.targe
   const body=$("#advbody"),a=b.dataset.a;body.innerHTML='<div class="muted">Đang tải…</div>';
   if(a==="lib"){body.innerHTML='<input id="lq" placeholder="Tìm mẫu, phong cách…"><div id="lr" style="margin-top:8px"></div>';
     const run=async()=>{const r=await call({a:"lib",q:$("#lq").value});$("#lr").innerHTML=libHtml(r.items||[]);};$("#lq").oninput=()=>{clearTimeout(window._lt);window._lt=setTimeout(run,300);};run();}
-  else if(a==="sug"){const q=((D.site&&D.site.site_name)||D.project.name||"")+" "+((D.areas||[]).map(x=>x.item).join(" "));
-    const r=await call({a:"lib",q});body.innerHTML="<b>Gợi ý phù hợp với dự án của anh/chị</b>"+libHtml((r.items||[]).slice(0,4))+'<div class="note">Muốn đề xuất chi tiết hơn, anh/chị nhắn trợ lý bên dưới hoặc nhờ kiến trúc sư phụ trách tư vấn.</div>';}
-  else{const r=await call({a:"lib",kind:"thiet-ke"}),r2=await call({a:"lib",kind:"thi-cong"});
-    body.innerHTML="<b>Thiết kế</b>"+libHtml(r.items||[])+"<b>Thi công</b>"+libHtml(r2.items||[]);}});
+  else if(a==="sug")body.innerHTML=qHtml("Anh/chị quan tâm điều gì? Chạm vào câu hỏi để gửi cho trợ lý, em sẽ hỏi thêm để hiểu rõ nhu cầu của gia đình mình.",QSUG);
+  else body.innerHTML=qHtml("Chạm vào câu hỏi để gửi cho trợ lý, em sẽ trao đổi và làm rõ thêm yêu cầu của anh/chị.",QHOW);});
+/* bo cau hoi goi mo: bam vao = khach gui tin cho tro ly, khong co noi dung mau san */
+const QSUG=[
+ ["Công năng và phong cách",["Gia đình tôi nên chọn phong cách nào cho hợp với nhu cầu sinh hoạt?","Tôi muốn được tư vấn cách bố trí công năng các phòng cho phù hợp với gia đình.","Tôi muốn nhờ gợi ý ánh sáng, thông gió và không gian xanh cho ngôi nhà."]],
+ ["Vật liệu và thiết bị",["Tôi muốn được gợi ý vật liệu cho từng khu vực trong nhà.","Tôi muốn nhờ tư vấn thiết bị vệ sinh, sen vòi và thiết bị thông minh.","Tôi muốn bàn về ngân sách và hạng mục nên ưu tiên đầu tư."]]
+];
+const QHOW=[
+ ["Thiết kế",["Tôi muốn trao đổi để chốt phương án mặt bằng.","Tôi muốn nhờ tư vấn màu sắc và vật liệu mặt tiền.","Tôi muốn nhờ tư vấn nội thất cho từng phòng."]],
+ ["Thi công",["Tôi muốn hỏi các mốc sắp tới cần tôi quyết định.","Tôi muốn nhờ tư vấn chọn vật liệu hoàn thiện kịp tiến độ thi công.","Tôi muốn hỏi về chi phí phát sinh và cách kiểm soát.","Tôi muốn hỏi về bảo hành và bàn giao công trình."]]
+];
+const qHtml=(intro,G)=>'<div class="muted">'+esc(intro)+"</div>"+G.map(g=>'<div class="qh">'+esc(g[0])+'</div><div class="qg">'+g[1].map(q=>'<button type="button" class="qc" data-q="'+esc(q)+'">'+esc(q)+"</button>").join("")+"</div>").join("")+'<div class="note">Anh/chị cũng có thể tự nhắn nhu cầu riêng ở khung chat bên dưới.</div>';
+$("#advbody").addEventListener("click",async e=>{const c=e.target.closest("[data-q]");if(!c||c.disabled)return;c.disabled=true;
+  const r=await call({a:"send",ch:"b",text:c.dataset.q});c.disabled=false;
+  if(r.ok){boxes.forEach(b=>b.ch==="b"&&b.add(r.msgs,false));c.classList.add("sent");toast("Đã gửi cho trợ lý");}else toast(r.msg||"Chưa gửi được, thử lại sau");});
 /* Tro ly: nut nho + khung noi, chuyen ket qua sang nhom du an */
 function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");clearTimeout(window._tt);window._tt=setTimeout(()=>e.classList.add("hide"),2200);}
 /* chieu cao thanh tab duoi day -> chua du khoang trong cuoi trang, khong thua */
