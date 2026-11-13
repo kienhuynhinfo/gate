@@ -274,6 +274,7 @@ body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos
       <div class="card"><h2>Việc sắp tới</h2><div id="next"></div></div>
       <div class="card"><h2>Tiến độ chung</h2><div id="ov"></div></div>
       <div class="card"><h2>Nhân sự phụ trách</h2><div class="staff" id="staffH"></div></div>
+      <div class="card" id="lhc"><h2>Liên hệ hợp đồng &amp; hành chính</h2><div class="muted">Chị Đoàn Thị Thùy Trang – Trưởng phòng Hành chính, phụ trách hợp đồng, tạm ứng, báo giá và hồ sơ dự án.</div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="tel:0938530402">Gọi chị Trang · 0938 530 402</a><a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:8px" href="tel:0786773838">Hotline công ty · 0786 77 3838</a><a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:8px" href="mailto:nhansukienhuynhdesign@gmail.com">Gửi email cho chị Trang</a><div class="sub">Hoặc nhắn trực tiếp trong tab Tư vấn, mục Nhóm dự án.</div></div>
       <div class="card" id="ptc"></div>
     </div>
     <div id="v-design" class="hide"><div class="card" id="dsum"></div><div class="card"><h2>Hình ảnh phối cảnh</h2><div id="rdr"></div></div><div class="card" id="matc"></div><div id="dlist"></div></div>
@@ -434,25 +435,24 @@ function render(d){
   const curPh=(()=>{const t=tdy(),nd=PI.filter(x=>x.status!=="Hoàn thành").sort((a,b)=>String(a.start_date).localeCompare(String(b.start_date)));const c=nd.find(x=>x.start_date<=t)||nd[0];return c?c.phase:"";})();
   if(PI.length)$("#hc").innerHTML='<div class="muted">Giai đoạn thi công hiện tại</div><div class="big">'+esc(curPh||"Hoàn thiện")+'</div><div class="bar"><i style="width:'+PL.pct+'%"></i></div><div class="muted">'+PI.filter(x=>x.status==="Hoàn thành").length+"/"+PI.length+" hạng mục thi công hoàn thành · "+PL.pct+"%</div>";
   else $("#hc").innerHTML='<div class="muted">Giai đoạn hiện tại</div><div class="big">'+esc(s&&s.phase?s.phase:"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,pct))+'%"></i></div><div class="muted">'+done+"/"+prog.length+" hạng mục hoàn thành · "+pct+"%"+(s&&s.condition?" · "+esc(s.condition):"")+"</div>";
-  const kv=[["Mã dự án",P.code]];
+  const kv=[];
   (d.areas||[]).forEach(a=>kv.push([a.item||"Hạng mục",(a.floor_area?Number(a.floor_area).toLocaleString("vi-VN")+" m²":"—")+(a.floors?" · "+a.floors+" tầng":"")]));
   if(s&&s.updated_at)kv.push(["Cập nhật gần nhất",fmt(s.updated_at)]);
-  kv.push(["Hồ sơ thiết kế",(d.docs||[]).length+" tài liệu"]);
-  $("#info").innerHTML=kv.map(x=>'<div class="kv"><span>'+esc(x[0])+"</span><span>"+esc(x[1])+"</span></div>").join("");
+    $("#info").innerHTML=kv.map(x=>'<div class="kv"><span>'+esc(x[0])+"</span><span>"+esc(x[1])+"</span></div>").join("");$("#info").parentElement.classList.toggle("hide",!kv.length);
   const nx=prog.filter(p=>p.status!=="Hoàn thành").concat(PI.filter(x=>x.status!=="Hoàn thành").map(x=>({item:x.content,status:x.status,due_date:x.end_date}))).sort((a,b)=>(a.due_date||"9").localeCompare(b.due_date||"9")).slice(0,5);
   $("#next").innerHTML=nx.length?nx.map(p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+"</div></div>").join(""):'<div class="empty">Các hạng mục đã hoàn thành.</div>';
-  $("#staffH").innerHTML=chips(d.staff);$("#staffC").innerHTML=mini(d.staff);
+  $("#staffH").innerHTML=chips((d.staff||[]).filter(x=>!(x.grp==="Hành chính"&&!/trưởng phòng/i.test(x.title||""))));$("#staffC").innerHTML=mini(d.staff);
   // thiet ke = cac hang muc tien do da loc phia may chu; thi cong = ke hoach thi cong
   const pD=prog;
   const dn=a=>a.filter(p=>p.status==="Hoàn thành").length,pc=a=>a.length?Math.round(dn(a)/a.length*100):0;
   const prow=p=>'<div class="item"><div class="n">'+esc(p.item)+'</div><div class="m">'+stTag(p)+(p.due_date?"<span>Hạn: "+fmt(p.due_date)+"</span>":"")+(p.done_date?"<span>Xong: "+fmt(p.done_date)+"</span>":"")+"</div></div>";
   $("#ov").innerHTML=buildTL(d);
   const grp={};pD.forEach(p=>(grp[p.discipline||"Khác"]=grp[p.discipline||"Khác"]||[]).push(p));
-  $("#dsum").innerHTML='<h2>Tiến độ thiết kế</h2><div class="big">'+pc(pD)+'%</div><div class="bar"><i style="width:'+pc(pD)+'%"></i></div><div class="muted">'+dn(pD)+"/"+pD.length+' hạng mục hoàn thành</div><div class="sub">Dữ liệu cập nhật trực tiếp từ hệ thống quản lý dự án của Kiến Huỳnh.</div>';
+  $("#dsum").innerHTML='<h2>Tiến độ thiết kế</h2><div class="big">'+pc(pD)+'%</div><div class="bar"><i style="width:'+pc(pD)+'%"></i></div><div class="muted">'+dn(pD)+"/"+pD.length+' hạng mục hoàn thành</div>';
   {const ks=Object.keys(grp).sort(discSort);
    $("#dlist").innerHTML=ks.length?'<div class="card"><h2>Lộ trình thiết kế</h2><div class="muted">Kiến trúc → Kết cấu → Nội thất → MEP (điện nước)</div>'+designRoute(grp,ks)+"</div>":'<div class="card"><div class="empty">Chưa có hạng mục thiết kế nào được cập nhật.</div></div>';}
   // tab Thi cong
-  $("#bsum").innerHTML='<h2>Tiến độ thi công</h2>'+(PI.length?'<div class="big">'+esc(curPh||"Hoàn thiện")+'</div><div class="bar"><i style="width:'+PL.pct+'%"></i></div><div class="muted">Hoàn thành khoảng '+PL.pct+'%'+(PL.total?" · kế hoạch "+fmt(PL.total.start_date)+" – "+fmt(PL.total.end_date):"")+"</div>":(s?'<div class="big">'+esc(s.phase||"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,Number(s.percent_done||0)))+'%"></i></div><div class="muted">Hoàn thành khoảng '+Number(s.percent_done||0)+"%</div>":'<div class="empty">Dự án chưa bước vào thi công.</div>'))+'<div class="sub">Dữ liệu cập nhật trực tiếp từ hệ thống quản lý dự án của Kiến Huỳnh.</div>';
+  $("#bsum").innerHTML='<h2>Tiến độ thi công</h2>'+(PI.length?'<div class="big">'+esc(curPh||"Hoàn thiện")+'</div><div class="bar"><i style="width:'+PL.pct+'%"></i></div><div class="muted">Hoàn thành khoảng '+PL.pct+'%'+(PL.total?" · kế hoạch "+fmt(PL.total.start_date)+" – "+fmt(PL.total.end_date):"")+"</div>":(s?'<div class="big">'+esc(s.phase||"Đang triển khai")+'</div><div class="bar"><i style="width:'+Math.max(0,Math.min(100,Number(s.percent_done||0)))+'%"></i></div><div class="muted">Hoàn thành khoảng '+Number(s.percent_done||0)+"%</div>":'<div class="empty">Dự án chưa bước vào thi công.</div>'))+'';
   $("#bplan").innerHTML=buildRoute(PL);$("#bplan").classList.toggle("hide",!PI.length);
   $("#bfin").innerHTML=finHtml(d.finance);$("#bfin").classList.toggle("hide",!d.finance);
   // nhat ky thi cong (lich)
@@ -463,7 +463,7 @@ function render(d){
   const kinds={};(d.docs||[]).forEach(x=>(kinds[x.kind]=kinds[x.kind]||[]).push(x));
   const ord=["Hồ sơ thiết kế","Tiến độ","Nhật ký thi công","Biên bản họp"];const ks=Object.keys(kinds).sort((a,b)=>{const x=ord.indexOf(a),y=ord.indexOf(b);return (x<0?9:x)-(y<0?9:y);});
   renderDocs(d.docs||[]);
-  {const ks2=ks.filter(k=>k!=="Hồ sơ thiết kế"&&kinds[k].some(x=>!isRender(x)&&!isDt(x)&&!isMat(x)));
+  {const ks2=ks.filter(k=>k!=="Hồ sơ thiết kế"&&!/hợp đồng/i.test(k)&&kinds[k].some(x=>!isRender(x)&&!isDt(x)&&!isMat(x)));
    $("#dc").innerHTML=ks2.map(k=>'<div class="card"><h2>'+esc(k)+"</h2>"+kinds[k].filter(x=>!isRender(x)&&!isDt(x)&&!isMat(x)).map(docRow).join("")+"</div>").join("");}
   // ca nhan
   const pf=d.profile||{};$("#pf-n").value=pf.name||"";$("#pf-e").value=pf.email||me;$("#pf-p").value=pf.phone||"";$("#pf-a").value=pf.address||"";$("#pf-t").value=pf.note_kh||"";
@@ -558,7 +558,7 @@ function renderDocs(docs){
   const names=BM.concat(["Hồ sơ khác"]);
   $("#bmb").innerHTML=names.map((n,i)=>i===4&&!cnt[4]?"":'<button data-bm="'+i+'">'+esc(n)+"<small>"+(cnt[i]?cnt[i]+" tài liệu":"Chưa có")+"</small></button>").join("");
   renderRenders(docs);
-  {const dt=docs.filter(isDt);$("#dtl").innerHTML=dt.length?dt.map(docRow).join(""):'<div class="note">Dự toán sẽ được đăng tại đây khi được chốt. Cần trao đổi thêm, anh/chị nhắn trong Nhóm dự án.</div>';}
+  {const dt=docs.filter(isDt);$("#dtl").innerHTML=(dt.length?dt.map(docRow).join(""):'<div class="note">Dự toán sẽ được đăng tại đây khi được chốt. Cần trao đổi thêm, anh/chị liên hệ chị Trang (Hành chính) · <a href="tel:0938530402">0938 530 402</a> hoặc nhắn trong Nhóm dự án.</div>')+(D&&D.estimates&&D.estimates.length?'<div class="sub">Bảng dự toán chi tiết xem ở tab Thi công.</div>':"");}
 }
 let RV=[],RI=0;
 function renderRenders(docs){
@@ -653,8 +653,8 @@ function openContract(){
   $("#dmt").textContent="Hợp đồng · "+((d.project&&d.project.name)||"");
   let h="";
   if(cd.length)h+="<h3>File hợp đồng</h3>"+cd.map(x=>'<div class="item"><div class="n">'+esc(x.title)+'</div><div class="m"><span>'+fmt(x.doc_date)+"</span>"+(x.url?'<a href="'+esc(x.url)+'" target="_blank" rel="noopener">Mở xem</a>':'<span class="tag warn">Đang cấp quyền xem</span>')+"</div></div>").join("");
-  else h+='<div class="note">File hợp đồng bản ký sẽ được đăng tại đây. Hiện anh/chị xem được các thông tin chính bên dưới; cần bản đầy đủ vui lòng nhắn trong Chat nhóm.</div>';
-  h+=f?finHtml(f):'<div class="empty">Chưa có thông tin hợp đồng.</div>';
+  else h+='<div class="note">File hợp đồng bản ký sẽ được đăng tại đây. Cần bản đầy đủ, anh/chị liên hệ chị Trang (Hành chính) · <a href="tel:0938530402">0938 530 402</a> hoặc nhắn trong Nhóm dự án.</div>';
+  h+=f?'<div class="sub">Giá trị hợp đồng và các đợt tạm ứng xem ở tab Thi công, mục Hợp đồng &amp; tạm ứng.</div>':'<div class="empty">Chưa có thông tin hợp đồng.</div>';
   $("#dmc").innerHTML=h;$("#dm").classList.remove("hide");
 }
 $("#ctbtn").onclick=openContract;
@@ -840,7 +840,7 @@ function xEst(d){
   const E=d.estimates||[],el=$("#bdt");if(!el)return;
   const num=x=>x==null||x===""?null:Number(x),amt=r=>{const a=num(r.amount);return a!=null?a:(num(r.qty)!=null&&num(r.unit_price)!=null?num(r.qty)*num(r.unit_price):0);};
   let h="<h2>Bảng dự toán</h2>";
-  if(!E.length){el.innerHTML=h+'<div class="empty" style="padding:18px 8px">Bảng dự toán sẽ được cập nhật tại đây khi đội ngũ gửi.</div>';return;}
+  el.classList.toggle("hide",!E.length);if(!E.length){el.innerHTML="";return;}
   const G=[],idx={};E.forEach(r=>{const g=r.grp||"Hạng mục khác";if(!(g in idx)){idx[g]=G.length;G.push({g,rows:[]});}G[idx[g]].rows.push(r);});
   let tot=0,i=0,rows="";
   G.forEach(x=>{let sub=0;rows+='<tr class="g"><td colspan="5">'+esc(x.g)+"</td></tr>";
