@@ -396,7 +396,7 @@ function ChatBox(host,ch,rows,hint){
       el.querySelectorAll("img.im:not(.dr)").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
     if(!list.children.length)list.innerHTML='<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
     else if(list.firstChild.className==="empty")list.firstChild.remove();
-    list.scrollTop=list.scrollHeight;};
+    list.scrollTop=list.scrollHeight;if(reset)[100,400,900].forEach(t=>setTimeout(()=>{list.scrollTop=list.scrollHeight;},t));};
   list.addEventListener("click",async e=>{const im=e.target.closest("img.im");if(im&&im.src){$("#lb img").src=im.dataset.full||im.src;$("#lb").classList.remove("hide");return;}
     const f=e.target.closest(".fl");if(f){const u=await fileBlob(ch,f.dataset.f);if(u){const a=document.createElement("a");a.href=u;a.download=f.dataset.n||"tep";a.click();}}});
   const drawTray=()=>{tray.classList.toggle("hide",!box.pend.length);tray.innerHTML=box.pend.map((x,i)=>'<div class="tt">'+(x.thumb?'<img src="'+x.thumb+'">':esc(String(x.name).slice(0,14)))+'<a data-x="'+i+'">✕</a></div>').join("");};
@@ -998,5 +998,6 @@ setInterval(tick,6000);
 })();
 </script>
 <style>.msg{max-width:min(86%,540px);width:fit-content;min-width:120px;border-radius:18px;font-size:14px}.msg.me{border-bottom-right-radius:6px}.msg.them,.msg.bot{border-bottom-left-radius:6px}.msg small{text-align:left}.msg.me small{text-align:right}.chat{max-width:820px}</style>
+<style>.bu,.msg{position:relative}.rxl{display:contents}.rxs{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.rxs:empty{display:none}.rxa{position:absolute;top:6px;right:9px;opacity:0;transition:opacity .15s}.bu:hover .rxa,.msg:hover .rxa{opacity:.65}@media(hover:none){.rxa{opacity:.4}}</style>
 </body>
 </html>
