@@ -412,9 +412,15 @@ function ChatBox(host,ch,rows,hint){
       EMO.forEach(em=>{const b=document.createElement("button");b.type="button";b.textContent=em;b.onclick=()=>{const a=inp.selectionStart==null?inp.value.length:inp.selectionStart,z=inp.selectionEnd==null?a:inp.selectionEnd;inp.value=inp.value.slice(0,a)+em+inp.value.slice(z);const q=a+em.length;inp.focus();try{inp.setSelectionRange(q,q);}catch(_){}d.remove();};d.appendChild(b);});cmp.appendChild(d);}});
   cmp.querySelectorAll("input[type=file]").forEach(i=>i.onchange=()=>take(i));
   inp.addEventListener("input",()=>{inp.style.height="auto";inp.style.height=Math.min(120,inp.scrollHeight)+"px";});
+  const PK="kh_pd_"+CODE+SLUG+ch;
   const send=async()=>{const v=inp.value.trim();if(!v&&!box.pend.length)return;const fs=box.pend.slice();inp.value="";inp.style.height="auto";box.pend=[];drawTray();bt.disabled=true;
-    const r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});bt.disabled=false;
-    if(r.ok){showMsgs(ch,r.msgs);}else{inp.value=v;box.pend=fs;drawTray();alert(r.msg||"Gửi chưa được");}};
+    try{localStorage.setItem(PK,v);}catch(_){}
+    const ghost=document.createElement("div");ghost.className="msg me";ghost.innerHTML=esc(v||"(đang gửi tệp…)")+"<small>đang gửi…</small>";
+    const em0=list.querySelector(".empty");if(em0)em0.remove();list.appendChild(ghost);list.scrollTop=list.scrollHeight;
+    let r;try{r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r={ok:false,msg:"Mất kết nối, tin chưa gửi được. Anh/chị bấm Gửi lại giúp em."};}
+    bt.disabled=false;
+    if(r.ok){try{localStorage.removeItem(PK);}catch(_){}ghost.remove();showMsgs(ch,r.msgs);}else{ghost.remove();inp.value=v;box.pend=fs;drawTray();alert(r.msg||"Gửi chưa được");}};
+  try{const pv=localStorage.getItem(PK);if(pv&&!inp.value){inp.value=pv;}}catch(_){}
   inp.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.shiftKey||e.isComposing)return;if(window.matchMedia&&window.matchMedia("(hover:none) and (pointer:coarse)").matches)return;e.preventDefault();send();});
   box.add(rows||[],true);boxes.push(box);return box;
 }
@@ -741,7 +747,7 @@ $("#v-adv").addEventListener("click",e=>{const b=e.target.closest(".cvb");if(!b)
   document.querySelectorAll(".cvb").forEach(x=>x.classList.toggle("on",x===b));
   $("#pg").classList.toggle("hide",b.dataset.c!=="g");$("#pb").classList.toggle("hide",b.dataset.c!=="b");
   const l=$(b.dataset.c==="g"?"#cg .chat":"#cb .chat");if(l)l.scrollTop=l.scrollHeight;[0,150,500].forEach(d=>setTimeout(chatEnd,d));});
-async function toGroup(text){text=String(text).slice(0,1900);const r=await call({a:"send",ch:"g",text});
+async function toGroup(text){text=String(text).slice(0,3900);const r=await call({a:"send",ch:"g",text});
   if(r.ok){boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));toast("Đã chuyển sang nhóm dự án");}else toast(r.msg||"Chưa chuyển được");}
 $("#pb").addEventListener("click",async e=>{
   const w=e.target.closest(".fw");if(w){
@@ -877,7 +883,7 @@ function xMats(d){
 }
 /* gui sang tab Tu van (nhom du an), kem tep neu co */
 async function xAdvise(text,files,stay){
-  const r=await call({a:"send",ch:"g",text:String(text).slice(0,1900),files:files&&files.length?files:undefined});
+  const r=await call({a:"send",ch:"g",text:String(text).slice(0,3900),files:files&&files.length?files:undefined});
   if(!r.ok){toast(r.msg||"Chưa gửi được, thử lại sau");return false;}
   boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));
   if(stay){toast("Đã báo đội ngũ");return true;}
