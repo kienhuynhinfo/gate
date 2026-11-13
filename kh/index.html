@@ -99,7 +99,7 @@ details.sm summary::after{content:" ▾"}
 .msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}.msg.me small{color:rgba(255,255,255,.75)}
 .msg.them{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:4px}
 .msg.bot{align-self:flex-start;background:var(--brand-l);border-bottom-left-radius:4px}
-.msg b.who{display:block;font-size:12px;color:var(--brand-d);margin-bottom:2px}
+.msg b:not(.who){font-weight:800;color:#0b57d0}.msg b.who{display:block;font-size:12px;color:var(--brand-d);margin-bottom:2px}
 .send{display:flex;gap:8px;margin-top:8px}.send input{flex:1}
 .empty{color:var(--muted);text-align:center;padding:26px 8px;font-size:14px}
 .note{background:var(--brand-l);color:var(--brand-d);border-radius:12px;padding:10px 12px;font-size:13px;margin-top:12px}
