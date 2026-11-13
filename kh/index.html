@@ -695,7 +695,9 @@ $("#np").onclick=e=>{if(e.target.closest("#nread")){try{localStorage.setItem("kh
 document.addEventListener("click",e=>{if(!e.target.closest("#np")&&!e.target.closest("#bell"))$("#np").classList.add("hide");});
 $("#tabs").onclick=e=>{const b=e.target.closest("button");if(!b)return;
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  ["home","design","build","docs","adv","me"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);document.body.classList.toggle("nos",b.dataset.t==="adv");fitChat();};
+  ["home","design","build","docs","adv","me"].forEach(t=>$("#v-"+t).classList.toggle("hide",t!==b.dataset.t));window.scrollTo(0,0);document.body.classList.toggle("nos",b.dataset.t==="adv");fitChat();if(b.dataset.t==="adv")[0,120,400,900,1800].forEach(d=>setTimeout(chatEnd,d));};
+function chatEnd(){document.querySelectorAll(".chat").forEach(l=>{if(l.offsetParent)l.scrollTop=l.scrollHeight;});}
+document.addEventListener("load",e=>{const l=e.target&&e.target.closest&&e.target.closest(".chat");if(l&&l.offsetParent&&l.scrollHeight-l.scrollTop-l.clientHeight<900)l.scrollTop=l.scrollHeight;},true);
 $("#pf-s").onclick=async()=>{const r=await call({a:"profile",name:$("#pf-n").value,phone:$("#pf-p").value,address:$("#pf-a").value,note:$("#pf-t").value});$("#pf-m").textContent=r.ok?"Đã lưu thông tin.":(r.msg||"Chưa lưu được");};
 $("#pw-s").onclick=async()=>{const r=await call({a:"pin",old:$("#pw-o").value,new:$("#pw-n").value});$("#pw-m").textContent=r.ok?"Đã đổi PIN. Lần sau đăng nhập bằng PIN mới.":(r.msg||"Chưa đổi được");if(r.ok){$("#pw-o").value="";$("#pw-n").value="";}};
 function showMsgs(ch,msgs){const mine=msgs.filter(m=>m.email!=="kh-bot"),rest=msgs.filter(m=>m.email==="kh-bot");
@@ -738,7 +740,7 @@ document.addEventListener("focusin",()=>{[0,150,400].forEach(t=>setTimeout(()=>{
 $("#v-adv").addEventListener("click",e=>{const b=e.target.closest(".cvb");if(!b)return;
   document.querySelectorAll(".cvb").forEach(x=>x.classList.toggle("on",x===b));
   $("#pg").classList.toggle("hide",b.dataset.c!=="g");$("#pb").classList.toggle("hide",b.dataset.c!=="b");
-  const l=$(b.dataset.c==="g"?"#cg .chat":"#cb .chat");if(l)l.scrollTop=l.scrollHeight;});
+  const l=$(b.dataset.c==="g"?"#cg .chat":"#cb .chat");if(l)l.scrollTop=l.scrollHeight;[0,150,500].forEach(d=>setTimeout(chatEnd,d));});
 async function toGroup(text){text=String(text).slice(0,1900);const r=await call({a:"send",ch:"g",text});
   if(r.ok){boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));toast("Đã chuyển sang nhóm dự án");}else toast(r.msg||"Chưa chuyển được");}
 $("#pb").addEventListener("click",async e=>{
