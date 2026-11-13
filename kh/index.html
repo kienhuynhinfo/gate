@@ -26,6 +26,7 @@ input:focus,textarea:focus{outline:2px solid var(--brand);border-color:transpare
 .btn.full{width:100%;margin-top:18px;padding:13px;font-size:16px}
 .btn.ghost{background:var(--brand-l);color:var(--brand-d)}
 .btn:disabled{opacity:.6}
+.pjl{display:flex;flex-direction:column;gap:10px;margin-top:6px}.pjl button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:15px;text-align:left;cursor:pointer;color:inherit}.pjl button:active,.pjl button:hover{border-color:var(--brand);background:var(--brand-l)}.pjl button b{font-weight:700}.pjl button span{font-size:12px;font-weight:700;color:var(--brand-d);background:var(--brand-l);border-radius:8px;padding:3px 9px;white-space:nowrap}.pjo{display:block;margin:16px auto 0;background:none;border:0;color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer}
 .err{color:var(--late);font-size:13px;margin-top:10px;min-height:18px}
 .ok{color:var(--ok);font-size:13px;margin-top:8px}
 header{background:var(--bg);border-bottom:1px solid var(--line)}
@@ -246,6 +247,17 @@ body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos
     <button class="btn full" id="lbt" type="submit">Đăng nhập</button>
     <div class="err" id="le"></div>
   </form>
+</section>
+<section id="pick" class="login hide">
+  <div class="lbox">
+    <img class="lgo" src="/icon-192.png" alt="Kiến Huỳnh Design">
+    <div class="brand">Kiến Huỳnh Design</div>
+    <h1>Dự án của anh/chị</h1>
+    <p id="pkw">Chọn dự án để vào xem tiến độ và trao đổi.</p>
+    <div class="pjl" id="pjl"></div>
+    <div class="err" id="pke"></div>
+    <button type="button" class="pjo" id="pko">Đăng xuất</button>
+  </div>
 </section>
 
 <section id="app" class="hide">
@@ -509,14 +521,35 @@ async function enter(){
   return true;
 }
 $("#lf").addEventListener("submit",async e=>{e.preventDefault();$("#le").textContent="";$("#lbt").disabled=true;
-  const pc=$("#pc").value.trim();if(!pc){$("#le").textContent="Nhập mã công trình";$("#lbt").disabled=false;$("#pc").focus();return;}
+  const pc=GATE?"":$("#pc").value.trim();if(!pc&&!GATE){$("#le").textContent="Nhập mã công trình";$("#lbt").disabled=false;$("#pc").focus();return;}
   try{const r=await call({a:"login",code:pc,slug:SLUG,email:$("#em").value.trim(),pin:$("#pin").value.trim()});
-    if(!r.ok){$("#le").textContent=r.msg||"Không đăng nhập được";return;}
+    if(!r.ok){$("#le").textContent=GATE?String(r.msg||"Không đăng nhập được").replace("Mã công trình, email hoặc mã PIN","Email hoặc mã PIN"):(r.msg||"Không đăng nhập được");return;}
     token=r.token;me=$("#em").value.trim();
+    if(GATE){try{localStorage.setItem("kh_em",me);localStorage.setItem("kh_gt",token);}catch(_){}await showPick(PCODE);return;}
     if(GATE||r.code.toUpperCase()!==CODE||r.slug!==SLUG){try{localStorage.setItem("kh_tk_"+r.code.toUpperCase()+r.slug,token);localStorage.setItem("kh_em",me);localStorage.setItem("kh_sl_"+r.code.toUpperCase(),r.slug);}catch(_){}location.replace("/kh/"+r.code+"/"+r.slug);return;}
     try{localStorage.setItem("kh_tk_"+CODE+SLUG,token);localStorage.setItem("kh_em",me);localStorage.setItem("kh_sl_"+CODE,SLUG);}catch(_){}
     await enter();}catch(_){$("#le").textContent="Không kết nối được, vui lòng thử lại";}finally{$("#lbt").disabled=false;}});
-$("#lo").onclick=()=>{try{localStorage.removeItem("kh_tk_"+CODE+SLUG);}catch(_){}location.reload();};
+$("#lo").onclick=()=>{try{localStorage.removeItem("kh_tk_"+CODE+SLUG);localStorage.removeItem("kh_gt");}catch(_){}location.href="/kh/";};
+/* ===== Cong chinh: dang nhap email + PIN -> chon du an ===== */
+async function goProj(code,btn){
+  if(btn)btn.disabled=true;$("#pke").textContent="";
+  try{const r=await call({a:"switch",code});
+    if(!r.ok){$("#pke").textContent=r.msg||"Chưa vào được dự án";if(btn)btn.disabled=false;return;}
+    try{localStorage.setItem("kh_tk_"+r.code.toUpperCase()+r.slug,r.token);localStorage.setItem("kh_sl_"+r.code.toUpperCase(),r.slug);}catch(_){}
+    location.href="/kh/"+r.code+"/"+r.slug;}
+  catch(_){$("#pke").textContent="Không kết nối được, vui lòng thử lại";if(btn)btn.disabled=false;}}
+async function showPick(want){
+  let d=null;try{d=await call({a:"home"});}catch(_){}
+  if(!d||!d.ok){token=null;try{localStorage.removeItem("kh_gt");}catch(_){}$("#pick").classList.add("hide");$("#login").classList.remove("hide");return false;}
+  const L=d.projects||[];
+  const w=want&&L.find(x=>String(x.code).toUpperCase()===want);
+  if(w){goProj(w.code);return true;}
+  $("#login").classList.add("hide");$("#pick").classList.remove("hide");
+  $("#pkw").textContent=(d.profile&&d.profile.name?"Xin chào "+d.profile.name+". ":"")+(L.length?"Chọn dự án để vào xem tiến độ và trao đổi.":"Tài khoản này chưa có dự án nào, vui lòng liên hệ Kiến Huỳnh.");
+  $("#pjl").innerHTML=L.map(x=>'<button type="button" data-c="'+esc(x.code)+'"><b>'+esc(x.name||x.code)+'</b><span>'+esc(x.code)+'</span></button>').join("");
+  return true;}
+$("#pjl").addEventListener("click",e=>{const b=e.target.closest("button[data-c]");if(b)goProj(b.dataset.c,b);});
+$("#pko").onclick=()=>{try{localStorage.removeItem("kh_gt");}catch(_){}token=null;location.href="/kh/";};
 let DIARY=[],CAL=null;
 const tdy=()=>new Date(Date.now()+7*36e5).toISOString().slice(0,10);
 const dms=x=>Date.parse(String(x).slice(0,10)+"T00:00:00Z");
@@ -962,12 +995,15 @@ document.addEventListener("change",async e=>{if(e.target.id!=="mt-f")return;
   e.target.value="";xTray();});
 document.addEventListener("error",e=>{const i=e.target;if(i&&i.tagName==="IMG"&&i.closest&&i.closest(".pt .lg")){const m=document.createElement("em");m.textContent=i.dataset.ini||"";i.replaceWith(m);}},true);
 if(GATE){
-  $("#lf").querySelector("p").textContent="Nhập mã công trình, email và mã PIN do Kiến Huỳnh cấp để vào trang dự án của anh/chị.";
-  if(PCODE){$("#pc").value=PCODE;
+  $("#lf").querySelector("p").textContent="Đăng nhập bằng email và mã PIN do Kiến Huỳnh cấp, sau đó chọn dự án của anh/chị.";
+  $("#pc").required=false;$("#pc").style.display="none";{const l=document.querySelector('label[for="pc"]');if(l)l.style.display="none";}
+  if(PCODE){
     /* da dang nhap truoc do tren thiet bi nay: vao thang du an */
     try{const cands=[PCODE,"V"+PCODE];for(const c of cands){const sl=localStorage.getItem("kh_sl_"+c);if(sl&&localStorage.getItem("kh_tk_"+c+sl)){location.replace("/kh/"+c+"/"+sl);break;}}}catch(_){}}
   try{if(me)$("#em").value=me;}catch(_){}
-  setTimeout(()=>{try{(PCODE?($("#em").value?$("#pin"):$("#em")):$("#pc")).focus();}catch(_){}},50);
+  let gt=null;try{gt=localStorage.getItem("kh_gt");}catch(_){}
+  if(gt){token=gt;showPick(PCODE);}
+  setTimeout(()=>{try{($("#em").value?$("#pin"):$("#em")).focus();}catch(_){}},50);
 }
 else{
   $("#pc").value=CODE;
