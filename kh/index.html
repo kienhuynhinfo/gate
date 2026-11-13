@@ -229,6 +229,7 @@ body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos
 .dt{width:100%;border-collapse:collapse;font-size:13px}.dt th,.dt td{padding:6px 5px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}.dt th:first-child,.dt td:first-child{text-align:left}.dt th{font-size:12px;color:var(--muted);font-weight:600}.dt tr.g td{background:var(--card);font-weight:700;text-align:left;color:var(--brand-d)}.dt tr.gs td{font-weight:600;color:var(--muted)}.dt tr.tt td{font-weight:800;border-top:2px solid var(--brand);border-bottom:0;padding-top:9px}.dtw{overflow-x:auto;margin:8px -4px 0;padding:0 4px}
 .sech{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:18px}.sech b{font-size:14px}
 </style>
+<style>.msg a.lk{color:#0b57d0;text-decoration:underline;word-break:break-all;font-weight:600;-webkit-tap-highlight-color:rgba(11,87,208,.2)}.msg.me a.lk{color:#fff}.msg b.tg{color:#c2410c;font-weight:800}.msg.me b.tg{color:#ffe2c2}</style>
 </head>
 <body>
 
@@ -397,6 +398,7 @@ function ChatBox(host,ch,rows,hint){
    +'<div class="cbar">'+(ATT?'<button type="button" class="ib" data-k="file" aria-label="Đính kèm tệp">'+IC_CLIP+'</button><button type="button" class="ib" data-k="img" aria-label="Gửi ảnh">'+IC_IMG+'</button>':'')+'<button type="button" class="ib" data-k="emo" aria-label="Biểu tượng">😊</button><span class="sp"></span><button type="button" class="btn" data-k="send">Gửi</button></div>'
    +(ATT?'<input type="file" class="hide" data-i="file" multiple><input type="file" class="hide" data-i="img" accept="image/*" multiple>':"")+'</div>';
   const list=$(".chat",host),inp=$("textarea",host),bt=$('[data-k=send]',host),tray=$(".tray",host),cmp=$(".cmp",host);
+  const fmtMsg=t=>{const raw=esc(t),tg=x=>x.replace(/\*\*([^*\n]{1,60})\*\*/g,"<b>$1</b>").replace(/(^|[\s(])([@#][^\s@#.,;:!?)<]+)/g,'$1<b class="tg">$2</b>');let o="",l=0,m;const re=/([\w.+-]+@[\w-]+(?:\.[\w-]+)+)|(https?:\/\/[^\s<]+|(?<![@\w.\/-])(?:www\.)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:com|vn|net|org|studio|io|me|app|info|edu)(?:\/[^\s<]*)?(?![\w@-]))/gi;while((m=re.exec(raw))){let u=m[0],tr="";const x=u.match(/(?:[.,;:)!?]|&quot;)+$/);if(x){tr=x[0];u=u.slice(0,u.length-tr.length);}if(!u){continue;}const h=m[1]?"mailto:"+u:(/^https?:/i.test(u)?u:"https://"+u);o+=tg(raw.slice(l,m.index))+'<a class="lk" href="'+h+'" target="_blank" rel="noopener noreferrer">'+u+"</a>"+tr;l=m.index+m[0].length;}return o+tg(raw.slice(l));};
   box.add=(arr,reset)=>{
     if(reset){list.innerHTML="";box.last=0;}
     arr.forEach(m=>{if(m.n<=box.last)return;box.last=m.n;if(ch==="g")noteMsg(m);
@@ -404,7 +406,7 @@ function ChatBox(host,ch,rows,hint){
       let att="";const txt=String(m.noi_dung||"").replace(DR,(a,id,cp)=>{att+='<img class="im dr" src="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w600" data-full="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w1600" alt="'+esc(cp)+'" title="'+esc(cp)+'" loading="lazy" onerror="this.remove()">';return "";}).replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
       const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them");
       el.dataset.rn=m.n;el.dataset.txt=String(txt||"").replace(/\*\*/g,"")||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
-      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+esc(txt).replace(/\*\*([^*\n]{1,60})\*\*/g,"<b>$1</b>")+att+"<small>"+esc(String(m.ngay||"").length>=16?String(m.ngay).slice(8,10)+"/"+String(m.ngay).slice(5,7)+" "+String(m.ngay).slice(11,16):"")+"</small>"+(ch==="b"?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':'<button class="fw" data-fb="1">Hỏi riêng trợ lý về tin này</button>');list.appendChild(el);
+      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+fmtMsg(txt)+att+"<small>"+esc(String(m.ngay||"").length>=16?String(m.ngay).slice(8,10)+"/"+String(m.ngay).slice(5,7)+" "+String(m.ngay).slice(11,16):"")+"</small>"+(ch==="b"?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':'<button class="fw" data-fb="1">Hỏi riêng trợ lý về tin này</button>');list.appendChild(el);
       el.querySelectorAll("img.im:not(.dr)").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
     if(!list.children.length)list.innerHTML='<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
     else if(list.firstChild.className==="empty")list.firstChild.remove();
