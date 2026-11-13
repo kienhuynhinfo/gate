@@ -681,13 +681,13 @@ function noteMsg(m){if((m.email||"").toLowerCase()===me.toLowerCase())return;if(
 function buildNotes(d){NKEY=CODE+SLUG;try{if(!localStorage.getItem("kh_ns_"+NKEY))localStorage.setItem("kh_ns_"+NKEY,nowVN());}catch(_){}
   NOTES=NOTES.filter(x=>x.id[0]==="m");
   const cut=new Date(Date.now()-14*864e5).toISOString().slice(0,10);
-  (d.progress||[]).forEach(p=>{if(p.done_date&&String(p.done_date).slice(0,10)>=cut)NOTES.push({id:"p"+p.id,t:String(p.done_date).slice(0,10)+" 23:59:59",txt:"Hoàn thành: "+p.item,tab:/xây dựng|thi công/i.test(p.discipline||"")?"build":"design",lbl:"Tiến độ"});});
-  (d.docs||[]).forEach(x=>{if(x.url&&x.doc_date&&String(x.doc_date).slice(0,10)>=cut)NOTES.push({id:"d"+x.id,t:String(x.doc_date).slice(0,10)+" 23:59:59",txt:"Hồ sơ mới: "+x.title,tab:"docs",lbl:"Hồ sơ"});});
-  (d.diary||[]).forEach(e=>{if(String(e.day||"").slice(0,10)>=cut)NOTES.push({id:"n"+e.id,t:String(e.day).slice(0,10)+" 23:59:59",txt:"Nhật ký thi công "+fmt(e.day)+(e.title?": "+e.title:""),tab:"build",lbl:"Thi công"});});
+  (d.progress||[]).forEach(p=>{if(p.done_date&&String(p.done_date).slice(0,10)>=cut)NOTES.push({id:"p"+p.id,t:String(p.done_date).slice(0,10)+" 00:00:00",txt:"Hoàn thành: "+p.item,tab:/xây dựng|thi công/i.test(p.discipline||"")?"build":"design",lbl:"Tiến độ"});});
+  (d.docs||[]).forEach(x=>{if(x.url&&x.doc_date&&String(x.doc_date).slice(0,10)>=cut)NOTES.push({id:"d"+x.id,t:String(x.doc_date).slice(0,10)+" 00:00:00",txt:"Hồ sơ mới: "+x.title,tab:"docs",lbl:"Hồ sơ"});});
+  (d.diary||[]).forEach(e=>{if(String(e.day||"").slice(0,10)>=cut)NOTES.push({id:"n"+e.id,t:String(e.day).slice(0,10)+" 00:00:00",txt:"Nhật ký thi công "+fmt(e.day)+(e.title?": "+e.title:""),tab:"build",lbl:"Thi công"});});
   bellDot();}
 function bellDot(){const ls=lastSeen(),n=NOTES.filter(x=>x.t>ls).length;const b=$("#bdot");if(b)b.classList.toggle("hide",!n);}
 function openNotes(){const ls=lastSeen(),L=NOTES.slice().sort((a,b)=>b.t.localeCompare(a.t)).slice(0,15);
-  $("#np").innerHTML="<h3>Thông báo</h3>"+(L.some(x=>x.t>ls)?'<button class="btn ghost" id="nread" style="width:100%;margin:0 0 6px;padding:7px;font-size:13px">Đánh dấu đã đọc tất cả</button>':"")+(L.length?L.map((x,i)=>'<button class="nt'+(x.t>ls?" nw":"")+'" data-i="'+i+'"><b style="font-size:12px;color:var(--muted)">'+esc(x.lbl)+"</b><span>"+esc(x.txt)+"</span><small>"+esc(x.t.slice(0,16).replace(" 23:59",""))+"</small></button>").join(""):'<div class="empty" style="padding:14px">Chưa có thông báo mới.</div>');
+  $("#np").innerHTML="<h3>Thông báo</h3>"+(L.some(x=>x.t>ls)?'<button class="btn ghost" id="nread" style="width:100%;margin:0 0 6px;padding:7px;font-size:13px">Đánh dấu đã đọc tất cả</button>':"")+(L.length?L.map((x,i)=>'<button class="nt'+(x.t>ls?" nw":"")+'" data-i="'+i+'"><b style="font-size:12px;color:var(--muted)">'+esc(x.lbl)+"</b><span>"+esc(x.txt)+"</span><small>"+esc(x.t.slice(0,16).replace(" 00:00",""))+"</small></button>").join(""):'<div class="empty" style="padding:14px">Chưa có thông báo mới.</div>');
   $("#np")._L=L;$("#np").classList.remove("hide");
   bellDot();}
 $("#bell").onclick=e=>{e.stopPropagation();$("#np").classList.contains("hide")?openNotes():$("#np").classList.add("hide");};
