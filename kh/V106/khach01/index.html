@@ -164,6 +164,7 @@ body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos
 .bpt{display:flex;gap:5px;margin-bottom:4px;flex:none}.bpt .btn{flex:1;padding:6px 2px;font-size:12px;border-radius:999px;line-height:1.2}
 #advbody{max-height:20vh;overflow-y:auto;font-size:13px;flex:none}#advbody:empty{display:none}.qh{font-size:11.5px;margin:4px 0 3px}.qg{flex-direction:row;flex-wrap:wrap;gap:5px}.qc{padding:5px 10px;font-size:12.5px;border-radius:999px;line-height:1.25}#advbody .note,#advbody .muted{font-size:11.5px;margin:2px 0}
 #fwall{flex:none;margin-top:6px;padding:8px;font-size:13px}
+.bpt .btn.on{background:var(--brand);color:#fff}.qc.done{opacity:.6}
 .step{position:relative;padding:0 0 14px 30px}.step:last-child{padding-bottom:2px}
 .step::before{content:"";position:absolute;left:9px;top:20px;bottom:-4px;width:2px;background:var(--line)}.step:last-child::before{display:none}
 .step .dot{position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700}
@@ -334,7 +335,7 @@ body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos
         <div id="cg"></div>
       </div>
       <div class="card chatcard hide" id="pb">
-        <div class="bpt"><button class="btn ghost" data-a="lib">Thư viện mẫu</button><button class="btn ghost" data-a="sug">Đề xuất</button><button class="btn ghost" data-a="how">Tư vấn TK – TC</button><button class="btn ghost" data-go="mat">Vật liệu</button></div>
+        <div class="bpt"><button class="btn ghost" data-a="step">Tư vấn từng bước</button><button class="btn ghost" data-a="sup">Nhà cung cấp</button><button class="btn ghost" data-a="home">Mẫu nhà</button></div>
         <div id="advbody"></div>
         <div id="cb"></div>
       </div>
@@ -757,11 +758,14 @@ function showMsgs(ch,msgs){const mine=msgs.filter(m=>m.email!=="kh-bot"),rest=ms
 /* Tu van */
 const libHtml=items=>items.length?items.map(i=>'<div class="lib"><div><b>'+esc(i.title)+'</b><p>'+esc(i.summary||"")+'</p></div><button class="fw" data-ti="'+esc(i.title)+'" data-su="'+esc(i.summary||"")+'">Gửi nhóm</button></div>').join(""):'<div class="empty">Chưa có nội dung phù hợp. Anh/chị nhắn trợ lý bên dưới để được hỗ trợ.</div>';
 document.querySelector("#pb").addEventListener("click",async e=>{const b=e.target.closest("[data-a]");if(!b)return;
-  const body=$("#advbody"),a=b.dataset.a;body.innerHTML='<div class="muted">Đang tải…</div>';
-  if(a==="lib"){body.innerHTML='<input id="lq" placeholder="Tìm mẫu, phong cách…"><div id="lr" style="margin-top:8px"></div>';
+  const body=$("#advbody"),a=b.dataset.a;
+  if(b.classList.contains("on")){b.classList.remove("on");body.innerHTML="";fitChat();return;}
+  b.parentNode.querySelectorAll(".on").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  if(a==="home"){body.innerHTML='<input id="lq" placeholder="Tìm mẫu nhà, phong cách…"><div id="lr" style="margin-top:8px"><div class="muted">Đang tải…</div></div>';
     const run=async()=>{const r=await call({a:"lib",q:$("#lq").value});$("#lr").innerHTML=libHtml(r.items||[]);};$("#lq").oninput=()=>{clearTimeout(window._lt);window._lt=setTimeout(run,300);};run();}
-  else if(a==="sug")body.innerHTML=qHtml("Chạm để bắt đầu, em sẽ hỏi từng câu một.",QSUG);
-  else body.innerHTML=qHtml("Chạm để bắt đầu, em sẽ hỏi từng câu một.",QHOW);});
+  else if(a==="sup")body.innerHTML=qHtml("Thư viện đối tác đang cập nhật. Chạm loại anh/chị cần, em sẽ hỏi thêm nhu cầu rồi tư vấn.",QSUP);
+  else body.innerHTML=qHtml("Chạm một câu để bắt đầu, em sẽ hỏi từng câu một. Câu đã hỏi có dấu ✓.",QSTEP);
+  fitChat();});
 /* bo cau hoi goi mo: bam vao = khach gui tin cho tro ly, khong co noi dung mau san */
 const QSUG=[
  ["Công năng và phong cách",[["Chọn phong cách","Gia đình tôi nên chọn phong cách nào cho hợp với nhu cầu sinh hoạt?"],["Bố trí công năng","Tôi muốn được tư vấn cách bố trí công năng các phòng cho phù hợp với gia đình."],["Ánh sáng, thông gió","Tôi muốn nhờ gợi ý ánh sáng, thông gió và không gian xanh cho ngôi nhà."]]],
@@ -771,10 +775,15 @@ const QHOW=[
  ["Thiết kế",[["Chốt mặt bằng","Tôi muốn trao đổi để chốt phương án mặt bằng."],["Màu sắc mặt tiền","Tôi muốn nhờ tư vấn màu sắc và vật liệu mặt tiền."],["Nội thất từng phòng","Tôi muốn nhờ tư vấn nội thất cho từng phòng."]]],
  ["Thi công",[["Mốc cần quyết định","Tôi muốn hỏi các mốc sắp tới cần tôi quyết định."],["Chọn vật liệu hoàn thiện","Tôi muốn nhờ tư vấn chọn vật liệu hoàn thiện kịp tiến độ thi công."],["Chi phí phát sinh","Tôi muốn hỏi về chi phí phát sinh và cách kiểm soát."],["Bảo hành, bàn giao","Tôi muốn hỏi về bảo hành và bàn giao công trình."]]]
 ];
-const qHtml=(intro,G)=>'<div class="muted">'+esc(intro)+"</div>"+G.map(g=>'<div class="qh">'+esc(g[0])+'</div><div class="qg">'+g[1].map(q=>'<button type="button" class="qc" data-q="'+esc(q[1])+'">'+esc(q[0])+"</button>").join("")+"</div>").join("")+'';
+const QSTEP=[["Bước 1 · Công năng và phong cách",QSUG[0][1]],["Bước 2 · Thiết kế",QHOW[0][1]],["Bước 3 · Vật liệu và thiết bị",QSUG[1][1]],["Bước 4 · Thi công",QHOW[1][1]]];
+const QSUP=[["Anh/chị đang cần nhà cung cấp loại nào?",[["Gạch, ốp lát","Tôi cần tư vấn nhà cung cấp gạch, ốp lát."],["Thiết bị vệ sinh","Tôi cần tư vấn nhà cung cấp thiết bị vệ sinh, sen vòi."],["Cửa, vách kính","Tôi cần tư vấn nhà cung cấp cửa và vách kính."],["Đèn, điện thông minh","Tôi cần tư vấn nhà cung cấp đèn và thiết bị điện thông minh."],["Nội thất rời","Tôi cần tư vấn nhà cung cấp nội thất rời."],["Thang máy","Tôi cần tư vấn nhà cung cấp thang máy."],["Cây xanh, sân vườn","Tôi cần tư vấn nhà cung cấp cây xanh và sân vườn."]]]];
+const ASKK="kh_ask_"+(CODE||PCODE||"x");
+const askedL=()=>{try{return JSON.parse(localStorage.getItem(ASKK)||"[]");}catch(_){return [];}};
+const markAsked=t=>{try{const a=askedL().filter(x=>x!==t);a.push(t);localStorage.setItem(ASKK,JSON.stringify(a.slice(-60)));}catch(_){}};
+const qHtml=(intro,G)=>'<div class="muted">'+esc(intro)+"</div>"+G.map(g=>'<div class="qh">'+esc(g[0])+'</div><div class="qg">'+g[1].map(q=>{const d=askedL().indexOf(q[1])>=0;return '<button type="button" class="qc'+(d?" done":"")+'" data-q="'+esc(q[1])+'">'+(d?"✓ ":"")+esc(q[0])+"</button>";}).join("")+"</div>").join("")+'';
 $("#advbody").addEventListener("click",async e=>{const c=e.target.closest("[data-q]");if(!c||c.disabled)return;c.disabled=true;
   const r=await call({a:"send",ch:"b",text:c.dataset.q});c.disabled=false;
-  if(r.ok){showMsgs("b",r.msgs);$("#advbody").innerHTML="";fitChat();toast("Đã gửi cho trợ lý");}else toast(r.msg||"Chưa gửi được, thử lại sau");});
+  if(r.ok){markAsked(c.dataset.q);showMsgs("b",r.msgs);$("#advbody").innerHTML="";document.querySelectorAll("#pb .bpt .on").forEach(x=>x.classList.remove("on"));fitChat();toast("Đã gửi cho trợ lý");}else toast(r.msg||"Chưa gửi được, thử lại sau");});
 /* Tro ly: nut nho + khung noi, chuyen ket qua sang nhom du an */
 function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");clearTimeout(window._tt);window._tt=setTimeout(()=>e.classList.add("hide"),2200);}
 /* chieu cao thanh tab duoi day -> chua du khoang trong cuoi trang, khong thua */
