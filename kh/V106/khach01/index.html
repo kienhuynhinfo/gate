@@ -367,7 +367,7 @@ let token=null,me="",D=null,boxes=[],timer=null;
 try{token=localStorage.getItem("kh_tk_"+CODE+SLUG);me=localStorage.getItem("kh_em")||"";}catch(_){}
 const APII="https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-illu";
 const nrm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
-const ILLU=/minh hoa|phac thao|\b(ve|tao|lam|render|gen)\s+(cho\s+|giup\s+|gium\s+)?(anh\s+|em\s+|toi\s+|minh\s+|chi\s+)?(mot\s+|vai\s+|\d\s+)?(hinh|anh|phoi canh|mat tien|y tuong|mo ta|so do|chi tiet|cau tao|mat cat|mat bang|lop |noi that|ngoai that|san vuon|bien phap)|(hinh|anh)\s+(y tuong|tham khao|minh hoa)/;
+const ILLU_ON=false;/* bật true khi sếp duyệt chức năng vẽ ảnh minh hoạ */const ILLU=/minh hoa|phac thao|\b(ve|tao|lam|render|gen)\s+(cho\s+|giup\s+|gium\s+)?(anh\s+|em\s+|toi\s+|minh\s+|chi\s+)?(mot\s+|vai\s+|\d\s+)?(hinh|anh|phoi canh|mat tien|y tuong|mo ta|so do|chi tiet|cau tao|mat cat|mat bang|lop |noi that|ngoai that|san vuon|bien phap)|(hinh|anh)\s+(y tuong|tham khao|minh hoa)/;
 async function callI(b){const r=await fetch(APII,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 async function call(b){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 const fmt=d=>{if(!d)return"—";const[y,m,x]=String(d).slice(0,10).split("-");return x+"/"+m+"/"+y;};
@@ -432,7 +432,7 @@ function ChatBox(host,ch,rows,hint){
   inp.addEventListener("input",()=>{inp.style.height="auto";inp.style.height=Math.min(120,inp.scrollHeight)+"px";});
   const send=async()=>{const v=inp.value.trim();if(!v&&!box.pend.length)return;const fs=box.pend.slice();inp.value="";inp.style.height="auto";box.pend=[];drawTray();bt.disabled=true;
     let r=null,ill=false;
-    if(ILLU.test(nrm(v))){try{r=await callI({a:"post",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r=null;}if(r&&r.ok)ill=true;else r=null;}
+    if(ILLU_ON&&ILLU.test(nrm(v))){try{r=await callI({a:"post",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r=null;}if(r&&r.ok)ill=true;else r=null;}
     if(!r)r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});bt.disabled=false;
     if(r.ok){showMsgs(ch,r.msgs);
       if(ill){const gh=document.createElement("div");gh.className="msg bot";gh.innerHTML="Em đang vẽ hình minh hoạ, anh/chị chờ khoảng 1 phút nhé…<small>đang tạo ảnh</small>";list.appendChild(gh);list.scrollTop=list.scrollHeight;
