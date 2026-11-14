@@ -97,9 +97,10 @@ details.sm summary::after{content:" ▾"}
 .chat{display:flex;flex-direction:column;gap:8px;padding:8px 0 4px;max-height:38vh;overflow-y:auto}
 .msg{max-width:86%;padding:9px 12px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-break:break-word}
 .msg small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
-.msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}.msg.me small{color:rgba(255,255,255,.75)}
+.msg.me{align-self:flex-end;background:#FFE3CC;border:1px solid #F7BE92;color:#3B1F10;border-bottom-right-radius:4px}.msg.me small{color:#A0613F}
 .msg.them{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:4px}
-.msg.bot{align-self:flex-start;background:var(--brand-l);border-bottom-left-radius:4px}
+.msg.bot{align-self:flex-start;background:#EEEAF8;border:1px solid #D8D0EE;border-bottom-left-radius:4px}
+.msg.p0{background:#E6F0FB;border-color:#C5DAF3}.msg.p1{background:#E2F3E4;border-color:#BFE0C4}.msg.p2{background:#E3F6F3;border-color:#BFE6DF}.msg.p3{background:#FBE6EF;border-color:#F1C5D8}.msg.p4{background:#FFF6D6;border-color:#F1E2A0}.msg.p5{background:#EFF6DD;border-color:#D4E5A9}
 .msg b:not(.who){font-weight:800;color:#0b57d0}.msg b.who{display:block;font-size:12px;color:var(--brand-d);margin-bottom:2px}
 .send{display:flex;gap:8px;margin-top:8px}.send input{flex:1}
 .empty{color:var(--muted);text-align:center;padding:26px 8px;font-size:14px}
@@ -229,7 +230,7 @@ body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos
 .dt{width:100%;border-collapse:collapse;font-size:13px}.dt th,.dt td{padding:6px 5px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}.dt th:first-child,.dt td:first-child{text-align:left}.dt th{font-size:12px;color:var(--muted);font-weight:600}.dt tr.g td{background:var(--card);font-weight:700;text-align:left;color:var(--brand-d)}.dt tr.gs td{font-weight:600;color:var(--muted)}.dt tr.tt td{font-weight:800;border-top:2px solid var(--brand);border-bottom:0;padding-top:9px}.dtw{overflow-x:auto;margin:8px -4px 0;padding:0 4px}
 .sech{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:18px}.sech b{font-size:14px}
 </style>
-<style>.msg a.lk{color:#0b57d0;text-decoration:underline;word-break:break-all;font-weight:600;-webkit-tap-highlight-color:rgba(11,87,208,.2)}.msg.me a.lk{color:#fff}.msg b.tg{color:#c2410c;font-weight:800}.msg.me b.tg{color:#ffe2c2}</style>
+<style>.msg a.lk{color:#0b57d0;text-decoration:underline;word-break:break-all;font-weight:600;-webkit-tap-highlight-color:rgba(11,87,208,.2)}.msg.me a.lk{color:#B45309}.msg b.tg{color:#c2410c;font-weight:800}.msg.me b.tg{color:#B45309}</style>
 </head>
 <body>
 
@@ -408,7 +409,7 @@ function ChatBox(host,ch,rows,hint){
     arr.forEach(m=>{if(m.n<=box.last)return;box.last=m.n;if(ch==="g")noteMsg(m);
       const isBot=m.email==="kh-bot"||m.email==="em",mine=(m.email||"").toLowerCase()===me.toLowerCase();
       let att="";const txt=String(m.noi_dung||"").replace(DR,(a,id,cp)=>{att+='<img class="im dr" src="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w600" data-full="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w1600" alt="'+esc(cp)+'" title="'+esc(cp)+'" loading="lazy" onerror="this.remove()">';return "";}).replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
-      const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them");
+      const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them p"+(([...String(m.email||m.ten||"")].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,0))%6));
       el.dataset.rn=m.n;el.dataset.txt=String(txt||"").replace(/\*\*/g,"")||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
       el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+fmtMsg(txt)+att+"<small>"+esc(String(m.ngay||"").length>=16?String(m.ngay).slice(8,10)+"/"+String(m.ngay).slice(5,7)+" "+String(m.ngay).slice(11,16):"")+"</small>"+(ch==="b"?'<button class="fw" data-fw="1">↪ Chuyển tiếp sang nhóm dự án</button>':'<button class="fw" data-fb="1">↪ Chuyển tiếp cho trợ lý</button>');list.appendChild(el);
       el.querySelectorAll("img.im:not(.dr)").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
