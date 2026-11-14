@@ -365,6 +365,10 @@ const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let token=null,me="",D=null,boxes=[],timer=null;
 try{token=localStorage.getItem("kh_tk_"+CODE+SLUG);me=localStorage.getItem("kh_em")||"";}catch(_){}
+const APII="https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-illu";
+const nrm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
+const ILLU=/minh hoa|phac thao|(ve|tao|lam|render|gen)\s+(cho\s+|giup\s+|gium\s+)?(anh|em|toi|minh|chi)?\s*(mot\s+|vai\s+|\d\s+)?(hinh|anh|phoi canh|mat tien|y tuong)|(hinh|anh)\s+(y tuong|tham khao|minh hoa)/;
+async function callI(b){const r=await fetch(APII,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 async function call(b){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 const fmt=d=>{if(!d)return"—";const[y,m,x]=String(d).slice(0,10).split("-");return x+"/"+m+"/"+y;};
 function stTag(p){const s=p.status||"";if(s==="Hoàn thành")return'<span class="tag ok">Hoàn thành</span>';if(/Cần đẩy/.test(s))return'<span class="tag late">'+esc(s)+"</span>";if(/chờ/i.test(s))return'<span class="tag warn">'+esc(s)+"</span>";return'<span class="tag">'+esc(s)+"</span>";}
@@ -431,9 +435,14 @@ function ChatBox(host,ch,rows,hint){
     try{localStorage.setItem(PK,v);}catch(_){}
     const ghost=document.createElement("div");ghost.className="msg me";ghost.innerHTML=esc(v||"(đang gửi tệp…)")+"<small>đang gửi…</small>";
     const em0=list.querySelector(".empty");if(em0)em0.remove();list.appendChild(ghost);list.scrollTop=list.scrollHeight;
-    let r;try{r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r={ok:false,msg:"Mất kết nối, tin chưa gửi được. Anh/chị bấm Gửi lại giúp em."};}
+    let r=null,ill=false;
+    if(ILLU.test(nrm(v))){try{r=await callI({a:"post",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r=null;}if(r&&r.ok)ill=true;else r=null;}
+    if(!r){try{r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r={ok:false,msg:"Mất kết nối, tin chưa gửi được. Anh/chị bấm Gửi lại giúp em."};}}
     bt.disabled=false;
-    if(r.ok){try{localStorage.removeItem(PK);}catch(_){}ghost.remove();showMsgs(ch,r.msgs);}else{ghost.remove();inp.value=v;box.pend=fs;drawTray();alert(r.msg||"Gửi chưa được");}};
+    if(r.ok){try{localStorage.removeItem(PK);}catch(_){}ghost.remove();showMsgs(ch,r.msgs);
+      if(ill){const gh=document.createElement("div");gh.className="msg bot";gh.innerHTML="Em đang vẽ hình minh hoạ, anh/chị chờ khoảng 1 phút nhé…<small>đang tạo ảnh</small>";list.appendChild(gh);list.scrollTop=list.scrollHeight;
+        callI({a:"make",ch,text:v}).catch(()=>({ok:false})).then(j=>{gh.remove();if(j&&j.ok)showMsgs(ch,j.msgs);else toast((j&&j.msg)||"Chưa tạo được hình minh hoạ");});}
+    }else{ghost.remove();inp.value=v;box.pend=fs;drawTray();alert(r.msg||"Gửi chưa được");}};
   try{const pv=localStorage.getItem(PK);if(pv&&!inp.value){inp.value=pv;}}catch(_){}
   inp.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.shiftKey||e.isComposing)return;if(window.matchMedia&&window.matchMedia("(hover:none) and (pointer:coarse)").matches)return;e.preventDefault();send();});
   box.add(rows||[],true);boxes.push(box);return box;
