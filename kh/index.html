@@ -407,7 +407,7 @@ function ChatBox(host,ch,rows,hint){
   box.add=(arr,reset)=>{
     if(reset){list.innerHTML="";box.last=0;}
     arr.forEach(m=>{if(m.n<=box.last)return;box.last=m.n;if(ch==="g")noteMsg(m);
-      const isBot=m.email==="kh-bot"||m.email==="em",mine=(m.email||"").toLowerCase()===me.toLowerCase();
+      const isBot=m.email==="kh-bot"||m.email==="em",mine=(m.email||"").toLowerCase()===me.toLowerCase();if(mine&&box.ghost){try{box.ghost.remove();}catch(_){}box.ghost=null;}
       let att="";const txt=String(m.noi_dung||"").replace(DR,(a,id,cp)=>{att+='<img class="im dr" src="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w600" data-full="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w1600" alt="'+esc(cp)+'" title="'+esc(cp)+'" loading="lazy" onerror="this.remove()">';return "";}).replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
       const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them p"+(([...String(m.email||m.ten||"")].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,0))%6));
       el.dataset.rn=m.n;el.dataset.txt=String(txt||"").replace(/\*\*/g,"")||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
@@ -435,7 +435,7 @@ function ChatBox(host,ch,rows,hint){
   const send=async()=>{const v=inp.value.trim();if(!v&&!box.pend.length)return;const fs=box.pend.slice();inp.value="";inp.style.height="auto";box.pend=[];drawTray();bt.disabled=true;
     try{localStorage.setItem(PK,v);}catch(_){}
     const ghost=document.createElement("div");ghost.className="msg me";ghost.innerHTML=esc(v||"(đang gửi tệp…)")+"<small>đang gửi…</small>";
-    const em0=list.querySelector(".empty");if(em0)em0.remove();list.appendChild(ghost);list.scrollTop=list.scrollHeight;
+    const em0=list.querySelector(".empty");if(em0)em0.remove();list.appendChild(ghost);box.ghost=ghost;list.scrollTop=list.scrollHeight;
     let r=null,ill=false;
     if(ILLU_ON&&ILLU.test(nrm(v))){try{r=await callI({a:"post",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r=null;}if(r&&r.ok)ill=true;else r=null;}
     if(!r){try{r=await call({a:"send",ch,text:v,files:fs.map(x=>({b64:x.b64,mime:x.mime,name:x.name}))});}catch(_){r={ok:false,msg:"Mất kết nối, tin chưa gửi được. Anh/chị bấm Gửi lại giúp em."};}}
