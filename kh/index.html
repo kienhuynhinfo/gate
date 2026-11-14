@@ -337,7 +337,6 @@ body.kb .tabs{display:none}body.kb #advbody,body.kb #fwall{display:none}body.nos
         <div class="bpt"><button class="btn ghost" data-a="lib">Thư viện mẫu</button><button class="btn ghost" data-a="sug">Đề xuất</button><button class="btn ghost" data-a="how">Tư vấn TK – TC</button><button class="btn ghost" data-go="mat">Vật liệu</button></div>
         <div id="advbody"></div>
         <div id="cb"></div>
-        <button class="btn full" id="fwall">Gửi tóm tắt yêu cầu sang nhóm dự án</button>
       </div>
     </div>
   </main>
@@ -802,11 +801,7 @@ $("#pb").addEventListener("click",async e=>{
     if(w.dataset.fw){const m=w.closest(".msg");toGroup((m.classList.contains("bot")?"Từ trợ lý: ":"Chuyển tiếp: ")+(m.dataset.txt||""));}
     else if(w.dataset.ti!==undefined){toGroup("Từ thư viện: "+w.dataset.ti+(w.dataset.su?" – "+w.dataset.su:""));}
     return;}
-  if(e.target.id==="fwall"){const bt=e.target;if(bt.disabled)return;
-    if(!document.querySelectorAll("#cb .msg").length){toast("Chưa có nội dung để chuyển");return;}
-    bt.disabled=true;const old=bt.textContent;bt.textContent="Đang tóm tắt…";
-    const r=await call({a:"sum"});bt.disabled=false;bt.textContent=old;
-    if(r.ok){boxes.forEach(b=>b.ch==="g"&&b.add(r.msgs,false));toast("Đã gửi bản tóm tắt sang nhóm dự án");}else toast(r.msg||"Chưa chuyển được");}});
+});
 /* ===== Tong quan: moc du an, viec can chot som, doi tac | Thiet ke: duyet vat lieu ===== */
 const xls=(k,def)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(_){return def;}};
 const xss=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
