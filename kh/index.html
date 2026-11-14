@@ -410,7 +410,7 @@ function ChatBox(host,ch,rows,hint){
       let att="";const txt=String(m.noi_dung||"").replace(DR,(a,id,cp)=>{att+='<img class="im dr" src="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w600" data-full="https://drive.google.com/thumbnail?id='+esc(id)+'&sz=w1600" alt="'+esc(cp)+'" title="'+esc(cp)+'" loading="lazy" onerror="this.remove()">';return "";}).replace(FR,(a,id,nm,mi)=>{att+=/^image\//.test(mi)?'<img class="im" data-f="'+esc(id)+'" alt="'+esc(nm)+'">':'<div class="fl" data-f="'+esc(id)+'" data-n="'+esc(nm)+'">📎 '+esc(nm)+"</div>";return "";}).trim();
       const el=document.createElement("div");el.className="msg "+(isBot?"bot":mine?"me":"them");
       el.dataset.rn=m.n;el.dataset.txt=String(txt||"").replace(/\*\*/g,"")||"(tệp đính kèm)";el.dataset.who=isBot?"Trợ lý":mine?"Khách":(m.ten||"");
-      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+fmtMsg(txt)+att+"<small>"+esc(String(m.ngay||"").length>=16?String(m.ngay).slice(8,10)+"/"+String(m.ngay).slice(5,7)+" "+String(m.ngay).slice(11,16):"")+"</small>"+(ch==="b"?'<button class="fw" data-fw="1">Chuyển sang nhóm dự án</button>':'<button class="fw" data-fb="1">Hỏi riêng trợ lý về tin này</button>');list.appendChild(el);
+      el.innerHTML=(mine?"":'<b class="who">'+esc(m.ten)+"</b>")+fmtMsg(txt)+att+"<small>"+esc(String(m.ngay||"").length>=16?String(m.ngay).slice(8,10)+"/"+String(m.ngay).slice(5,7)+" "+String(m.ngay).slice(11,16):"")+"</small>"+(ch==="b"?'<button class="fw" data-fw="1">↪ Chuyển tiếp sang nhóm dự án</button>':'<button class="fw" data-fb="1">↪ Chuyển tiếp cho trợ lý</button>');list.appendChild(el);
       el.querySelectorAll("img.im:not(.dr)").forEach(async im=>{const u=await fileBlob(ch,im.dataset.f);if(u)im.src=u;else im.remove();});});
     if(!list.children.length)list.innerHTML='<div class="empty">Chưa có tin nhắn. Anh/chị cứ đặt câu hỏi, đội ngũ Kiến Huỳnh sẽ phản hồi sớm nhất.</div>';
     else if(list.firstChild.className==="empty")list.firstChild.remove();
@@ -1046,5 +1046,6 @@ setInterval(tick,6000);
 </script>
 <style>.msg{max-width:min(86%,540px);width:fit-content;min-width:120px;border-radius:18px;font-size:14px}.msg.me{border-bottom-right-radius:6px}.msg.them,.msg.bot{border-bottom-left-radius:6px}.msg small{text-align:left}.msg.me small{text-align:right}.chat{max-width:820px}</style>
 <style>.bu,.msg{position:relative}.rxl{display:contents}.rxs{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.rxs:empty{display:none}.rxa{position:absolute;top:6px;right:9px;opacity:0;transition:opacity .15s}.bu:hover .rxa,.msg:hover .rxa{opacity:.65}@media(hover:none){.rxa{opacity:.4}}</style>
+<style>.msg{padding:6px 10px;margin:0;line-height:1.35}.msg .fw{display:inline-block;width:auto;margin:3px 0 0;padding:1px 7px;border:0;border-radius:8px;background:rgba(127,127,127,.12);color:inherit;opacity:.7;font-size:11px;font-weight:600;cursor:pointer}.msg.me .fw{background:rgba(255,255,255,.2)}.msg small{margin-top:1px;font-size:10.5px}.msg b.who{margin-bottom:0}.chat{gap:4px}</style>
 </body>
 </html>
