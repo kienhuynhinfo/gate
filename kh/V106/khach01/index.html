@@ -367,7 +367,7 @@ let token=null,me="",D=null,boxes=[],timer=null;
 try{token=localStorage.getItem("kh_tk_"+CODE+SLUG);me=localStorage.getItem("kh_em")||"";}catch(_){}
 const APII="https://wxlqdibzqmdiyopmvyzg.supabase.co/functions/v1/client-illu";
 const nrm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d");
-const ILLU=/minh hoa|phac thao|(ve|tao|lam|render|gen)\s+(cho\s+|giup\s+|gium\s+)?(anh|em|toi|minh|chi)?\s*(mot\s+|vai\s+|\d\s+)?(hinh|anh|phoi canh|mat tien|y tuong)|(hinh|anh)\s+(y tuong|tham khao|minh hoa)/;
+const ILLU=/minh hoa|phac thao|\b(ve|tao|lam|render|gen)\s+(cho\s+|giup\s+|gium\s+)?(anh\s+|em\s+|toi\s+|minh\s+|chi\s+)?(mot\s+|vai\s+|\d\s+)?(hinh|anh|phoi canh|mat tien|y tuong|mo ta|so do|chi tiet|cau tao|mat cat|mat bang|lop |noi that|ngoai that|san vuon|bien phap)|(hinh|anh)\s+(y tuong|tham khao|minh hoa)/;
 async function callI(b){const r=await fetch(APII,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 async function call(b){const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,...b})});return r.json();}
 const fmt=d=>{if(!d)return"—";const[y,m,x]=String(d).slice(0,10).split("-");return x+"/"+m+"/"+y;};
