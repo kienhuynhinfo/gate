@@ -59,7 +59,7 @@ html[data-theme=gantt] .chip.ld{color:#1E1B18}
 .pk button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:10px;border-radius:10px;cursor:pointer}
 .pk button:hover,.pk button.on{background:var(--brand-l)}.pk button b{display:block;font-size:14px}.pk button span{font-size:12px;color:var(--muted)}
 .out{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs{position:fixed;left:0;right:0;bottom:var(--tbo,0px);z-index:9;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabs div{max-width:760px;margin:0 auto;display:flex;padding:6px 4px}
 .tabs button{flex:1;min-width:0;border:0;background:none;padding:2px 0;color:var(--muted);font:inherit;font-size:10.5px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;white-space:nowrap}
 .tabs button i{display:flex;align-items:center;justify-content:center;width:42px;height:28px;border-radius:14px;font-style:normal;transition:background .15s}
@@ -771,7 +771,7 @@ function toast(t){const e=$("#tst");e.textContent=t;e.classList.remove("hide");c
 /* chieu cao thanh tab duoi day -> chua du khoang trong cuoi trang, khong thua */
 function setTb(){const t=document.querySelector(".tabs"),h=t?t.offsetHeight:0;if(h>0)document.documentElement.style.setProperty("--tb",h+"px");}
 window.addEventListener("resize",setTb);window.addEventListener("orientationchange",setTb);
-function fitChat(){const v=$("#v-adv");if(v.classList.contains("hide"))return;
+function fitChat(){const _w=window.visualViewport;if(_w){document.documentElement.style.setProperty("--tbo",Math.max(0,window.innerHeight-(_w.offsetTop+_w.height))+"px");}const v=$("#v-adv");if(v.classList.contains("hide"))return;
   const vv=window.visualViewport,vh=vv?vv.height:window.innerHeight,off=vv?vv.offsetTop:0;
   const kb=vv&&(window.innerHeight-vh>120);document.body.classList.toggle("kb",!!kb);
   const tb=kb?0:document.querySelector(".tabs").offsetHeight,top=v.getBoundingClientRect().top-off;
