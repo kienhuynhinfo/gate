@@ -319,7 +319,7 @@ var TPA=[];
 var M2K='thang',M2V='dat';
 function m2Box(){return '<div id=m2w>'+m2In()+'</div>';}
 function m2In(){var LB={tuan:'tuần',thang:'tháng',quy:'quý'},c=function(k,t){return '<a style="cursor:pointer" class="ch'+(M2K===k?' ok':' gr')+'" onclick="m2Set(\''+k+'\')">'+t+'</a> ';},v=function(k,t){return '<a style="cursor:pointer" class="ch'+(M2V===k?' ok':' gr')+'" onclick="m2View(\''+k+'\')">'+t+'</a> ';};
- return sec('📐 Số liệu m² · tham khảo · '+LB[M2K],'<span>'+c('tuan','Tuần')+c('thang','Tháng')+c('quy','Quý')+'</span>')+'<div style="margin:0 0 6px">'+v('dat','Trùm ôm đất')+v('sl','Sản lượng')+'</div><div id=m2q class=tpg><div class="cd tp"><span class=mu>Đang tải…</span></div></div>';}
+ return sec('📐 Số liệu m² · tham khảo · '+LB[M2K],'<span>'+c('tuan','Tuần')+c('thang','Tháng')+c('quy','Quý')+'</span>')+'<div style="margin:0 0 6px">'+v('dat','Trùm ôm đất')+v('sl','Sản lượng')+'</div><div id=m2q style="max-width:560px"><div class="cd tp"><span class=mu>Đang tải…</span></div></div>';}
 function m2Set(k){M2K=k;var w=$('m2w');if(w){w.innerHTML=m2In();m2Load();}}
 function m2View(k){M2V=k;var w=$('m2w');if(w){w.innerHTML=m2In();m2Load();}}
 async function m2Load(){var el=$('m2q');if(!el)return;var r=await apiC('topM2',{k:M2K}).catch(function(){return null;});if(!$('m2q'))return;if(!r||!r.ok){el.innerHTML='<div class="cd tp"><span class=mu>Chưa đọc được số liệu m².</span></div>';return;}
